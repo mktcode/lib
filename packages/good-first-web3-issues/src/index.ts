@@ -10,13 +10,13 @@ type Options = {
   githubToken: string;
   port?: number;
   redisConfig?: Record<string, any>;
-  snycInterval?: number;
+  syncInterval?: number;
   debug?: boolean;
 }
 
 export class GoodFirstWeb3Issues {
   private port: number;
-  private snycInterval: number;
+  private syncInterval: number;
   private debug: boolean;
 
   private db: ReturnType<typeof createClient>;
@@ -27,11 +27,11 @@ export class GoodFirstWeb3Issues {
     githubToken,
     port = 3000,
     redisConfig = {},
-    snycInterval = 1e3 * 60 * 5,
+    syncInterval = 1e3 * 60 * 5,
     debug = false,
   }: Options) {
     this.port = port;
-    this.snycInterval = snycInterval;
+    this.syncInterval = syncInterval;
     this.debug = debug;
 
     this.db = createClient(redisConfig);
@@ -129,6 +129,6 @@ export class GoodFirstWeb3Issues {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(() => this.sync(), this.snycInterval);
+    setInterval(() => this.sync(), this.syncInterval);
   }
 }

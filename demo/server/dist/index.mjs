@@ -3,6 +3,6 @@ import { GoodFirstWeb3Issues } from "@mktcodelib/good-first-web3-issues";
 var gfw3i = new GoodFirstWeb3Issues({
   githubToken: process.env.PAT || "",
   debug: true,
-  snycInterval: 1e3 * 10
+  syncInterval: 1e3 * 10
 });
 gfw3i.run();

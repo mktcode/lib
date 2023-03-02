@@ -586,11 +586,11 @@ var GoodFirstWeb3Issues = class {
     githubToken,
     port = 3e3,
     redisConfig = {},
-    snycInterval = 1e3 * 60 * 5,
+    syncInterval = 1e3 * 60 * 5,
     debug = false
   }) {
     this.port = port;
-    this.snycInterval = snycInterval;
+    this.syncInterval = syncInterval;
     this.debug = debug;
     this.db = createClient(redisConfig);
     this.db.on("error", (err) => console.log("Redis Client Error", err));
@@ -673,7 +673,7 @@ var GoodFirstWeb3Issues = class {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(() => this.sync(), this.snycInterval);
+    setInterval(() => this.sync(), this.syncInterval);
   }
 };
 export {
