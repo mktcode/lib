@@ -129,6 +129,6 @@ export class GoodFirstWeb3Issues {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(this.sync, this.snycInterval);
+    setInterval(() => this.sync(), this.snycInterval);
   }
 }

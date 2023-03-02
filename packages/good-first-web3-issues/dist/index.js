@@ -706,7 +706,7 @@ var GoodFirstWeb3Issues = class {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(this.sync, this.snycInterval);
+    setInterval(() => this.sync(), this.snycInterval);
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
