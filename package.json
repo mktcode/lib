@@ -4,6 +4,10 @@
     "good-first-web3-issues:build": "pnpm --filter good-first-web3-issues build",
     "good-first-web3-issues:start": "pnpm --filter good-first-web3-issues start",
 
+    "github-insights:lint": "pnpm --filter github-insights lint",
+    "github-insights:build": "pnpm --filter github-insights build",
+    "github-insights:test": "pnpm --filter github-insights test",
+
     "graphql-fetch-all:lint": "pnpm --filter graphql-fetch-all lint",
     "graphql-fetch-all:build": "pnpm --filter graphql-fetch-all build",
 
@@ -14,10 +18,11 @@
     "server:build": "pnpm --filter server build",
     "server:start": "pnpm --filter server start",
 
-    "lint": "pnpm graphql-fetch-all:lint && pnpm good-first-web3-issues:lint && pnpm client:lint && pnpm server:lint",
-    "build": "pnpm graphql-fetch-all:build && pnpm good-first-web3-issues:build && pnpm server:build",
+    "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm client:lint && pnpm server:lint",
+    "build": "pnpm graphql-fetch-all:build && pnpm github-insights:build && pnpm good-first-web3-issues:build && pnpm server:build",
+    "test": "pnpm github-insights:test",
     
-    "all": "pnpm lint && pnpm build"
+    "all": "pnpm lint && pnpm build && pnpm test"
   },
   "keywords": [
     "mktcode",

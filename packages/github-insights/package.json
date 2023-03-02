@@ -1,0 +1,24 @@
+{
+  "name": "@mktcodelib/github-insights",
+  "version": "0.0.1",
+  "description": "Utilities to fetch and evaluate GitHub data.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest",
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "lint": "eslint ."
+  },
+  "keywords": [],
+  "author": "mktcode",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/graphql": "^5.0.5",
+    "@types/lodash": "^4.14.191",
+    "graphql": "^16.6.0",
+    "graphql-tag": "^2.12.6",
+    "lodash": "^4.17.21",
+    "octokit": "^2.0.14"
+  }
+}
