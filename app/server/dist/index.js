@@ -24,8 +24,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 
 // src/index.ts
 var import_good_first_web3_issues = __toESM(require("@mktcodelib/good-first-web3-issues"));
-console.log(import_good_first_web3_issues.default);
-console.log(process.env.PAT);
 var gfw3i = new import_good_first_web3_issues.default({
   githubToken: process.env.PAT || ""
 });
