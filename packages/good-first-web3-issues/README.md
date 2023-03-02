@@ -5,12 +5,11 @@ npm i @mktcodelib/good-first-web3-issues
 ```
 
 ```javascript
-import { app, sync } from '@mktcodelib/good-first-web3-issues'
+import { GoodFirstWeb3Issues } from '@mktcodelib/good-first-web3-issues'
 
-app.listen(3000, () => {
-  console.log('Listening on port 3000')
-})
+const githubToken = "..."
 
-sync()
-setInterval(sync, 1000 * 60 * 5)
+const gfw3i = new GoodFirstWeb3Issues({ githubToken })
+
+gfw3i.run()
 ```
