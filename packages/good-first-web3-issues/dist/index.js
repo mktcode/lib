@@ -50,7 +50,7 @@ var __async = (__this, __arguments, generator) => {
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  GoodFirstWeb3Issues: () => GoodFirstWeb3Issues
+  default: () => GoodFirstWeb3Issues
 });
 module.exports = __toCommonJS(src_exports);
 var import_express = __toESM(require("express"));
@@ -710,6 +710,4 @@ var GoodFirstWeb3Issues = class {
   }
 };
 // Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  GoodFirstWeb3Issues
-});
+0 && (module.exports = {});

@@ -10,12 +10,17 @@
     "client:lint": "pnpm --filter client lint",
     "client:dev": "pnpm --filter client dev",
 
-    "lint": "pnpm graphql-fetch-all:lint && pnpm good-first-web3-issues:lint && pnpm client:lint",
-    "build": "pnpm graphql-fetch-all:build && pnpm good-first-web3-issues:build",
+    "server:lint": "pnpm --filter server lint",
+    "server:build": "pnpm --filter server build",
+    "server:start": "pnpm --filter server start",
+
+    "lint": "pnpm graphql-fetch-all:lint && pnpm good-first-web3-issues:lint && pnpm client:lint && pnpm server:lint",
+    "build": "pnpm graphql-fetch-all:build && pnpm good-first-web3-issues:build && pnpm server:build",
     
     "all": "pnpm lint && pnpm build"
   },
   "keywords": [
+    "mktcode",
     "lib"
   ],
   "author": "mktcode",

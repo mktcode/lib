@@ -69,6 +69,27 @@ importers:
       vite: 4.1.3_@types+node@18.14.0
       vue-tsc: 1.1.4_typescript@4.7.4
 
+  app/server:
+    specifiers:
+      '@mktcodelib/good-first-web3-issues': workspace:^0.0.1
+      '@mktcodelib/graphql-fetch-all': workspace:^0.0.1
+      '@octokit/graphql': ^5.0.5
+      '@types/express': ^4.17.17
+      express: ^4.18.2
+      graphql: ^16.6.0
+      graphql-tag: ^2.12.6
+      redis: ^4.6.5
+    dependencies:
+      '@mktcodelib/good-first-web3-issues': link:../../packages/good-first-web3-issues
+      '@mktcodelib/graphql-fetch-all': link:../../packages/graphql-fetch-all
+      '@octokit/graphql': 5.0.5
+      express: 4.18.2
+      graphql: 16.6.0
+      graphql-tag: 2.12.6_graphql@16.6.0
+      redis: 4.6.5
+    devDependencies:
+      '@types/express': 4.17.17
+
   packages/good-first-web3-issues:
     specifiers:
       '@mktcodelib/graphql-fetch-all': workspace:^0.0.1
