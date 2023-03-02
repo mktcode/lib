@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/good-first-web3-issues",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Utility to fetch all nodes in a paginated graphql query.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
