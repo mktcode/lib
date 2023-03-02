@@ -50,21 +50,13 @@ var __async = (__this, __arguments, generator) => {
 // src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  app: () => app,
-  sync: () => sync
+  GoodFirstWeb3Issues: () => GoodFirstWeb3Issues
 });
 module.exports = __toCommonJS(src_exports);
 var import_express = __toESM(require("express"));
-
-// src/db.ts
 var import_redis = require("redis");
-var db = (0, import_redis.createClient)();
-db.on("error", (err) => console.log("Redis Client Error", err));
-db.connect();
-
-// src/sync.ts
-var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 var import_graphql = require("@octokit/graphql");
+var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 
 // src/whitelist.ts
 var whitelist = [
@@ -621,65 +613,103 @@ var REPO_ISSUES_QUERY = import_graphql_tag.default`query ($owner: String!, $name
   }
 }`;
 
-// src/sync.ts
-var client = import_graphql.graphql.defaults({
-  headers: {
-    Authorization: `bearer ${process.env.PAT}`
-  }
-});
-function sync() {
-  return __async(this, null, function* () {
-    const { value: login } = whitelistCycle.next();
-    console.log(`Syncing ${login}...`);
-    let orgOrUser;
-    try {
-      const orgResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(client, ORG_REPOS_QUERY, { login, first: 100 }, ["organization", "repositories"]);
-      orgOrUser = orgResponse.organization;
-    } catch (e) {
-      try {
-        const userResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(client, USER_REPOS_QUERY, { login, first: 100 }, ["user", "repositories"]);
-        orgOrUser = userResponse.user;
-      } catch (e2) {
-        console.log(e2);
-      }
-    }
-    if (!orgOrUser) {
-      db.hDel("orgs", login);
-      console.log(`Removed ${login}!`);
-      return;
-    }
-    for (const repo of orgOrUser.repositories.nodes) {
-      try {
-        const issuesResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(client, REPO_ISSUES_QUERY, { owner: orgOrUser.login, name: repo.name, first: 100 }, ["repository", "issues"]);
-        orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.map((r) => r.name === repo.name ? issuesResponse.repository : r);
-      } catch (e) {
-        console.log(e);
-      }
-    }
-    orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
-    if (orgOrUser.repositories.nodes.length === 0) {
-      db.hDel("orgs", login);
-      console.log(`Removed ${login}!`);
-      return;
-    }
-    yield db.hSet("orgs", login, JSON.stringify(orgOrUser));
-    console.log(`Synced ${login}!`);
-  });
-}
-
 // src/index.ts
-var app = (0, import_express.default)();
-app.get("/", (_req, res) => __async(void 0, null, function* () {
-  const cached = yield db.hGetAll("orgs");
-  if (cached) {
-    Object.keys(cached).forEach((key) => {
-      cached[key] = JSON.parse(cached[key]);
+var GoodFirstWeb3Issues = class {
+  constructor({
+    githubToken,
+    port = 3e3,
+    redisConfig = {},
+    snycInterval = 1e3 * 60 * 5,
+    debug = false
+  }) {
+    this.port = port;
+    this.snycInterval = snycInterval;
+    this.debug = debug;
+    this.db = (0, import_redis.createClient)(redisConfig);
+    this.db.on("error", (err) => console.log("Redis Client Error", err));
+    this.server = (0, import_express.default)();
+    this.server.get("/", (_req, res) => __async(this, null, function* () {
+      const cached = yield this.db.hGetAll("orgs");
+      if (cached) {
+        Object.keys(cached).forEach((key) => {
+          cached[key] = JSON.parse(cached[key]);
+        });
+      }
+      res.send(cached || {});
+    }));
+    this.github = import_graphql.graphql.defaults({
+      headers: {
+        Authorization: `bearer ${githubToken}`
+      }
     });
   }
-  res.send(cached || {});
-}));
+  log(...args) {
+    if (this.debug) {
+      console.log(...args);
+    }
+  }
+  sync() {
+    return __async(this, null, function* () {
+      const { value: login } = whitelistCycle.next();
+      this.log(`Syncing ${login}...`);
+      let orgOrUser;
+      try {
+        const orgResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
+          this.github,
+          ORG_REPOS_QUERY,
+          { login, first: 100 },
+          ["organization", "repositories"]
+        );
+        orgOrUser = orgResponse.organization;
+      } catch (e) {
+        try {
+          const userResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
+            this.github,
+            USER_REPOS_QUERY,
+            { login, first: 100 },
+            ["user", "repositories"]
+          );
+          orgOrUser = userResponse.user;
+        } catch (e2) {
+          this.log(e2);
+        }
+      }
+      if (!orgOrUser) {
+        this.db.hDel("orgs", login);
+        this.log(`Removed ${login}!`);
+        return;
+      }
+      for (const repo of orgOrUser.repositories.nodes) {
+        try {
+          const issuesResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
+            this.github,
+            REPO_ISSUES_QUERY,
+            { owner: orgOrUser.login, name: repo.name, first: 100 },
+            ["repository", "issues"]
+          );
+          orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.map((r) => r.name === repo.name ? issuesResponse.repository : r);
+        } catch (e) {
+          this.log(e);
+        }
+      }
+      orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
+      if (orgOrUser.repositories.nodes.length === 0) {
+        this.db.hDel("orgs", login);
+        this.log(`Removed ${login}!`);
+        return;
+      }
+      yield this.db.hSet("orgs", login, JSON.stringify(orgOrUser));
+      this.log(`Synced ${login}!`);
+    });
+  }
+  run() {
+    this.db.connect();
+    this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
+    this.sync();
+    setInterval(this.sync, this.snycInterval);
+  }
+};
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  app,
-  sync
+  GoodFirstWeb3Issues
 });

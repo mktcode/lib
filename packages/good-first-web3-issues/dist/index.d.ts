@@ -1,7 +1,21 @@
-import express from 'express';
+type Options = {
+    githubToken: string;
+    port?: number;
+    redisConfig?: Record<string, any>;
+    snycInterval?: number;
+    debug?: boolean;
+};
+declare class GoodFirstWeb3Issues {
+    private port;
+    private snycInterval;
+    private debug;
+    private db;
+    private server;
+    private github;
+    constructor({ githubToken, port, redisConfig, snycInterval, debug, }: Options);
+    log(...args: any[]): void;
+    sync(): Promise<void>;
+    run(): void;
+}
 
-declare function sync(): Promise<void>;
-
-declare const app: ReturnType<typeof express>;
-
-export { app, sync };
+export { GoodFirstWeb3Issues };
