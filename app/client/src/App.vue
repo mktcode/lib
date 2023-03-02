@@ -6,6 +6,6 @@ const { animationKey } = useKeyframes(200);
 
 <template>
   <main class="flex flex-col items-center space-y-5 pt-24">
-    {{  animationKey  }}
+    {{ animationKey }}
   </main>
 </template>
