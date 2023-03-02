@@ -2,7 +2,7 @@ import express from 'express';
 import { db } from './db';
 import { sync } from './sync';
 
-const app = express();
+const app: ReturnType<typeof express> = express();
 
 app.get('/', async (_req, res) => {
   const cached = await db.hGetAll('orgs');
@@ -16,9 +16,7 @@ app.get('/', async (_req, res) => {
   res.send(cached || {});
 });
 
-app.listen(3000, () => {
-  console.log(`Example app listening at http://localhost:3000`)
-});
-
-sync();
-setInterval(sync, 60 * 1e3);
+export {
+  app,
+  sync,
+}

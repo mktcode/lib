@@ -5,6 +5,10 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -21,6 +25,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 var __async = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
@@ -43,6 +48,12 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
+var src_exports = {};
+__export(src_exports, {
+  app: () => app,
+  sync: () => sync
+});
+module.exports = __toCommonJS(src_exports);
 var import_express = __toESM(require("express"));
 
 // src/db.ts
@@ -658,7 +669,7 @@ function sync() {
 
 // src/index.ts
 var app = (0, import_express.default)();
-app.get("/", (_req, res) => __async(exports, null, function* () {
+app.get("/", (_req, res) => __async(void 0, null, function* () {
   const cached = yield db.hGetAll("orgs");
   if (cached) {
     Object.keys(cached).forEach((key) => {
@@ -667,8 +678,8 @@ app.get("/", (_req, res) => __async(exports, null, function* () {
   }
   res.send(cached || {});
 }));
-app.listen(3e3, () => {
-  console.log(`Example app listening at http://localhost:3000`);
+// Annotate the CommonJS export names for ESM import in node:
+0 && (module.exports = {
+  app,
+  sync
 });
-sync();
-setInterval(sync, 60 * 1e3);

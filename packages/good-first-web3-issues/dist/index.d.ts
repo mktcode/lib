@@ -1,2 +1,7 @@
+import express from 'express';
 
-export { }
+declare function sync(): Promise<void>;
+
+declare const app: ReturnType<typeof express>;
+
+export { app, sync };
