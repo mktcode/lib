@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "include": ["src/**/*", "tests/**/*"],
   "compilerOptions": {
-    "baseUrl": ".", // This must be specified if "paths" is.
+    "baseUrl": ".",
     "paths": {
       "graphql-tag": ["node_modules/graphql-tag/"],
       "redis": ["node_modules/redis/"],
