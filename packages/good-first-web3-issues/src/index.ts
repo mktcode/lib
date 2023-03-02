@@ -44,7 +44,7 @@ export class GoodFirstWeb3Issues {
     
       if (cached) {
         Object.keys(cached).forEach((key) => {
-          cached[key] = JSON.parse(cached[key]);
+          cached[key] = JSON.parse(cached[key]!);
         });
       }
     
