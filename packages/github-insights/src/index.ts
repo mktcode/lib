@@ -4,7 +4,7 @@ import { GITHUB_REPOSITORY_SCAN_QUERY, GITHUB_USER_FOLLOWERS_QUERY } from "./que
 import { evaluateUserScan } from "./evaluators/user";
 import { evaluateRepositoryScan, type RepositoryScan } from "./evaluators/repository";
 import { fetchUserScan } from "./fetchers/user";
-import { paginate } from "./paginate";
+import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
 
 export class GithubInsights {
   client: ReturnType<typeof graphql.defaults>;
@@ -21,7 +21,7 @@ export class GithubInsights {
   async scanUser(login: string) {
     const userScan = await fetchUserScan(this.client, login)
 
-    const followers = await paginate(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ['user', 'followers']);
+    const followers = await graphqlFetchAll(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ['user', 'followers']);
 
     return evaluateUserScan(userScan);
   }

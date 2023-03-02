@@ -77,6 +77,7 @@ importers:
 
   packages/github-insights:
     specifiers:
+      '@mktcodelib/graphql-fetch-all': workspace:^0.0.1
       '@octokit/graphql': ^5.0.5
       '@types/lodash': ^4.14.191
       graphql: ^16.6.0
@@ -84,6 +85,7 @@ importers:
       lodash: ^4.17.21
       octokit: ^2.0.14
     dependencies:
+      '@mktcodelib/graphql-fetch-all': link:../graphql-fetch-all
       '@octokit/graphql': 5.0.5
       '@types/lodash': 4.14.191
       graphql: 16.6.0

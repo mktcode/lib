@@ -1,27 +1,10 @@
 "use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
-var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __propIsEnum = Object.prototype.propertyIsEnumerable;
-var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues = (a, b) => {
-  for (var prop in b || (b = {}))
-    if (__hasOwnProp.call(b, prop))
-      __defNormalProp(a, prop, b[prop]);
-  if (__getOwnPropSymbols)
-    for (var prop of __getOwnPropSymbols(b)) {
-      if (__propIsEnum.call(b, prop))
-        __defNormalProp(a, prop, b[prop]);
-    }
-  return a;
-};
-var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -70,8 +53,8 @@ __export(src_exports, {
   GithubInsights: () => GithubInsights
 });
 module.exports = __toCommonJS(src_exports);
-var import_graphql3 = require("@octokit/graphql");
-var import_graphql4 = require("graphql");
+var import_graphql2 = require("@octokit/graphql");
+var import_graphql3 = require("graphql");
 
 // src/queries.ts
 var import_graphql_tag = __toESM(require("graphql-tag"));
@@ -231,39 +214,11 @@ function fetchUserScan(client, login) {
   });
 }
 
-// src/paginate.ts
-var import_graphql2 = require("graphql");
-var import_lodash = require("lodash");
-function paginate(client, query, variables, pathToPaginatedProperty, nodesFetched = 0) {
-  return __async(this, null, function* () {
-    const fullData = yield client((0, import_graphql2.print)(query), variables);
-    const {
-      nodes,
-      totalCount,
-      pageInfo: { hasNextPage, endCursor }
-    } = (0, import_lodash.get)(fullData, pathToPaginatedProperty);
-    if (hasNextPage) {
-      const perPage = Math.min(totalCount - nodesFetched, 100);
-      const nextData = yield paginate(
-        client,
-        query,
-        __spreadProps(__spreadValues({}, variables), { first: perPage, after: endCursor }),
-        pathToPaginatedProperty,
-        nodesFetched + nodes.length
-      );
-      const nextPageData = (0, import_lodash.get)(nextData, pathToPaginatedProperty);
-      (0, import_lodash.set)(fullData, pathToPaginatedProperty, __spreadProps(__spreadValues({}, nextPageData), {
-        nodes: [...nodes, ...nextPageData.nodes]
-      }));
-    }
-    return fullData;
-  });
-}
-
 // src/index.ts
+var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 var GithubInsights = class {
   constructor(options) {
-    this.client = import_graphql3.graphql.defaults({
+    this.client = import_graphql2.graphql.defaults({
       baseUrl: options.sourceUrl,
       headers: {
         Authorization: `bearer ${options.viewerToken}`
@@ -273,14 +228,14 @@ var GithubInsights = class {
   scanUser(login) {
     return __async(this, null, function* () {
       const userScan = yield fetchUserScan(this.client, login);
-      const followers = yield paginate(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ["user", "followers"]);
+      const followers = yield (0, import_graphql_fetch_all.graphqlFetchAll)(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ["user", "followers"]);
       return evaluateUserScan(userScan);
     });
   }
   scanRepository(owner, name) {
     return __async(this, null, function* () {
       const { repository } = yield this.client(
-        (0, import_graphql4.print)(GITHUB_REPOSITORY_SCAN_QUERY),
+        (0, import_graphql3.print)(GITHUB_REPOSITORY_SCAN_QUERY),
         { owner, name }
       );
       return evaluateRepositoryScan(repository);
