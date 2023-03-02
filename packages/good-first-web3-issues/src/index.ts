@@ -14,7 +14,7 @@ type Options = {
   debug?: boolean;
 }
 
-export default class GoodFirstWeb3Issues {
+export class GoodFirstWeb3Issues {
   private port: number;
   private snycInterval: number;
   private debug: boolean;

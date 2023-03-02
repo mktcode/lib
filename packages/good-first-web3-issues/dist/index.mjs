@@ -677,5 +677,5 @@ var GoodFirstWeb3Issues = class {
   }
 };
 export {
-  GoodFirstWeb3Issues as default
+  GoodFirstWeb3Issues
 };

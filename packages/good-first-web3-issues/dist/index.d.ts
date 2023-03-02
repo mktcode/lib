@@ -18,4 +18,4 @@ declare class GoodFirstWeb3Issues {
     run(): void;
 }
 
-export { GoodFirstWeb3Issues as default };
+export { GoodFirstWeb3Issues };
