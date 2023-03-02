@@ -11,7 +11,7 @@
     "lint": "eslint . --ext .vue,.js,.cjs,.mjs,.ts,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
-    "@mktcode/graphql-fetch-all": "workspace:^0.0.1",
+    "@mktcodelib/graphql-fetch-all": "workspace:^0.0.1",
     "vue": "^3.2.45"
   },
   "devDependencies": {

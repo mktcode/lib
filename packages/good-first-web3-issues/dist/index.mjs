@@ -29,7 +29,7 @@ db.on("error", (err) => console.log("Redis Client Error", err));
 db.connect();
 
 // src/sync.ts
-import { graphqlFetchAll } from "@mktcode/graphql-fetch-all";
+import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
 import { graphql } from "@octokit/graphql";
 
 // src/whitelist.ts

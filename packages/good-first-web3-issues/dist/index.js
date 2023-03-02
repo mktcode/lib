@@ -63,7 +63,7 @@ db.on("error", (err) => console.log("Redis Client Error", err));
 db.connect();
 
 // src/sync.ts
-var import_graphql_fetch_all = require("@mktcode/graphql-fetch-all");
+var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 var import_graphql = require("@octokit/graphql");
 
 // src/whitelist.ts

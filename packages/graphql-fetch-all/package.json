@@ -1,5 +1,5 @@
 {
-  "name": "@mktcode/graphql-fetch-all",
+  "name": "@mktcodelib/graphql-fetch-all",
   "version": "0.0.1",
   "description": "Utility to fetch all nodes in a paginated graphql query.",
   "main": "dist/index.js",

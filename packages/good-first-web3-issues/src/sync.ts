@@ -1,4 +1,4 @@
-import { graphqlFetchAll } from '@mktcode/graphql-fetch-all';
+import { graphqlFetchAll } from '@mktcodelib/graphql-fetch-all';
 import { graphql } from '@octokit/graphql';
 import { whitelistCycle } from './whitelist';
 import { ORG_REPOS_QUERY, REPO_ISSUES_QUERY, USER_REPOS_QUERY } from './queries';
