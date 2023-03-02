@@ -106,7 +106,7 @@ export class GoodFirstWeb3Issues {
           { owner: orgOrUser.login, name: repo.name, first: 100 },
           ['repository', 'issues']
         );
-        orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.map((r) => r.name === repo.name ? issuesResponse.repository : r);
+        repo.issues.nodes = issuesResponse.repository.issues.nodes;
       } catch (e) {
         this.log(e);
       }
