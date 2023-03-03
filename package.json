@@ -21,7 +21,7 @@
 
     "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm client:lint && pnpm server:lint",
     "build": "pnpm graphql-fetch-all:build && pnpm github-insights:build && pnpm good-first-web3-issues:build && pnpm server:build",
-    "test": "pnpm github-insights:test",
+    "test": "pnpm graphql-fetch-all:test && pnpm github-insights:test",
     
     "all": "pnpm lint && pnpm build && pnpm test"
   },

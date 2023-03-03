@@ -1,21 +1,7 @@
+import { DocumentNode } from "graphql";
 import gql from "graphql-tag";
 
-export const GITHUB_USER_FOLLOWERS_QUERY = gql`query ($login: String!, $first: Int = 1, $after: String) { 
-  user (login: $login) {
-    followers (first: $first, after: $after) {
-      totalCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        login
-      }
-    }
-  }
-}`;
-
-export const GITHUB_USER_SCAN_QUERY = gql`query (
+export const GITHUB_USER_SCAN_QUERY: DocumentNode = gql`query (
   $login: String!,
   $firstFollowers: Int!,
   $afterFollower: String,
@@ -74,15 +60,5 @@ export const GITHUB_USER_SCAN_QUERY = gql`query (
         }
       }
     }
-  }
-}`;
-
-export const GITHUB_REPOSITORY_SCAN_QUERY = gql`query (
-  $owner: String!,
-  $name: String!
-) { 
-  repository (owner: $owner, name: $name) {
-    createdAt
-    stargazerCount
   }
 }`;

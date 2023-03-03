@@ -18,7 +18,5 @@ export async function fetchUserScan(
     },
   );
 
-  console.log(user)
-
   return user;
 }

@@ -54,94 +54,6 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 var import_graphql = require("@octokit/graphql");
-var import_graphql2 = require("graphql");
-
-// src/queries.ts
-var import_graphql_tag = __toESM(require("graphql-tag"));
-var GITHUB_USER_FOLLOWERS_QUERY = import_graphql_tag.default`query ($login: String!, $first: Int = 1, $after: String) { 
-  user (login: $login) {
-    followers (first: $first, after: $after) {
-      totalCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        login
-      }
-    }
-  }
-}`;
-var GITHUB_USER_SCAN_QUERY = import_graphql_tag.default`query (
-  $login: String!,
-  $firstFollowers: Int!,
-  $afterFollower: String,
-  $firstRepos: Int!,
-  $afterRepo: String,
-  $firstPrs: Int!,
-  $afterPr: String,
-) { 
-  user (login: $login) {
-    login
-    createdAt
-    followers (first: $firstFollowers, after: $afterFollower) {
-      totalCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        repositories (first: 100, isFork: false) {
-          nodes {
-            stargazerCount
-            forkCount
-          }
-        }
-        followers {
-          totalCount
-        }
-      }
-    }
-    repositories (first: $firstRepos, after: $afterRepo, isFork: false) {
-      totalCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        stargazerCount
-        forkCount
-      }
-    }
-    pullRequests (first: $firstPrs, after: $afterPr, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
-      totalCount
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      nodes {
-        merged
-        mergedAt
-        repository {
-          owner {
-            login
-          }
-          stargazerCount
-          forkCount
-        }
-      }
-    }
-  }
-}`;
-var GITHUB_REPOSITORY_SCAN_QUERY = import_graphql_tag.default`query (
-  $owner: String!,
-  $name: String!
-) { 
-  repository (owner: $owner, name: $name) {
-    createdAt
-    stargazerCount
-  }
-}`;
 
 // src/evaluators/user.ts
 function evaluateUserScan(userScan) {
@@ -211,16 +123,74 @@ function evaluateUserScan(userScan) {
   };
 }
 
-// src/evaluators/repository.ts
-function evaluateRepositoryScan(repositoryScan) {
-  return {
-    mostActiveContributor: null,
-    contributors: []
-  };
-}
-
 // src/fetchers/user.ts
 var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
+
+// src/queries.ts
+var import_graphql_tag = __toESM(require("graphql-tag"));
+var GITHUB_USER_SCAN_QUERY = import_graphql_tag.default`query (
+  $login: String!,
+  $firstFollowers: Int!,
+  $afterFollower: String,
+  $firstRepos: Int!,
+  $afterRepo: String,
+  $firstPrs: Int!,
+  $afterPr: String,
+) { 
+  user (login: $login) {
+    login
+    createdAt
+    followers (first: $firstFollowers, after: $afterFollower) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        repositories (first: 100, isFork: false) {
+          nodes {
+            stargazerCount
+            forkCount
+          }
+        }
+        followers {
+          totalCount
+        }
+      }
+    }
+    repositories (first: $firstRepos, after: $afterRepo, isFork: false) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        stargazerCount
+        forkCount
+      }
+    }
+    pullRequests (first: $firstPrs, after: $afterPr, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      nodes {
+        merged
+        mergedAt
+        repository {
+          owner {
+            login
+          }
+          stargazerCount
+          forkCount
+        }
+      }
+    }
+  }
+}`;
+
+// src/fetchers/user.ts
 function fetchUserScan(client, login) {
   return __async(this, null, function* () {
     const { user } = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
@@ -233,7 +203,6 @@ function fetchUserScan(client, login) {
         firstPrs: 100
       }
     );
-    console.log(user);
     return user;
   });
 }
@@ -252,15 +221,6 @@ var GithubInsights = class {
     return __async(this, null, function* () {
       const userScan = yield fetchUserScan(this.client, login);
       return evaluateUserScan(userScan);
-    });
-  }
-  scanRepository(owner, name) {
-    return __async(this, null, function* () {
-      const { repository } = yield this.client(
-        (0, import_graphql2.print)(GITHUB_REPOSITORY_SCAN_QUERY),
-        { owner, name }
-      );
-      return evaluateRepositoryScan(repository);
     });
   }
 };
