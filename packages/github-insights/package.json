@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/github-insights",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Utilities to fetch and evaluate GitHub data.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
