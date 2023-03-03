@@ -62,30 +62,38 @@ __export(src_exports, {
 module.exports = __toCommonJS(src_exports);
 var import_graphql = require("graphql");
 var import_lodash = require("lodash");
-function graphqlFetchAll(client, query, variables, pathToPaginatedProperty, nodesFetched = 0) {
+function graphqlFetchAll(client, query, variables, paginators, currentData) {
   return __async(this, null, function* () {
-    const fullData = yield client((0, import_graphql.print)(query), variables);
-    const {
-      nodes,
-      totalCount,
-      pageInfo: { hasNextPage, endCursor }
-    } = (0, import_lodash.get)(fullData, pathToPaginatedProperty);
-    nodesFetched += nodes.length;
-    if (hasNextPage) {
-      const perPage = Math.min(totalCount - nodesFetched, 100);
-      const nextData = yield graphqlFetchAll(
-        client,
-        query,
-        __spreadProps(__spreadValues({}, variables), { first: perPage, after: endCursor }),
-        pathToPaginatedProperty,
-        nodesFetched
-      );
-      const nextPageData = (0, import_lodash.get)(nextData, pathToPaginatedProperty);
-      (0, import_lodash.set)(fullData, pathToPaginatedProperty, __spreadProps(__spreadValues({}, nextPageData), {
-        nodes: [...nodes, ...nextPageData.nodes]
-      }));
+    console.log(JSON.stringify(variables));
+    const data = yield client((0, import_graphql.print)(query), variables);
+    if (currentData) {
+      for (const paginator of paginators) {
+        if (paginator.done)
+          continue;
+        const nodes = (0, import_lodash.get)(data, paginator.path).nodes;
+        const currentNodes = (0, import_lodash.get)(currentData, paginator.path).nodes;
+        (0, import_lodash.set)(currentData, paginator.path, __spreadProps(__spreadValues({}, (0, import_lodash.get)(currentData, paginator.path)), {
+          nodes: [...currentNodes, ...nodes]
+        }));
+      }
+    } else {
+      currentData = data;
     }
-    return fullData;
+    for (const paginator of paginators) {
+      const { totalCount, pageInfo: { hasNextPage, endCursor } } = (0, import_lodash.get)(data, paginator.path);
+      const { nodes } = (0, import_lodash.get)(currentData, paginator.path);
+      if (hasNextPage) {
+        variables[paginator.limitParamName] = Math.min(totalCount - nodes.length, 100);
+        variables[paginator.cursorParamName] = endCursor;
+      } else {
+        paginator.done = true;
+      }
+    }
+    if (paginators.every((paginator) => paginator.done)) {
+      return currentData;
+    } else {
+      return graphqlFetchAll(client, query, variables, paginators, currentData);
+    }
   });
 }
 // Annotate the CommonJS export names for ESM import in node:

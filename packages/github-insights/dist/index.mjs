@@ -41,13 +41,17 @@ var GITHUB_USER_FOLLOWERS_QUERY = gql`query ($login: String!, $first: Int = 1, $
 }`;
 var GITHUB_USER_SCAN_QUERY = gql`query (
   $login: String!,
-  $first: Int!,
-  $after: String,
+  $firstFollowers: Int!,
+  $afterFollower: String,
+  $firstRepos: Int!,
+  $afterRepo: String,
+  $firstPrs: Int!,
+  $afterPr: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $first, after: $after) {
+    followers (first: $firstFollowers, after: $afterFollower) {
       totalCount
       pageInfo {
         hasNextPage
@@ -65,14 +69,23 @@ var GITHUB_USER_SCAN_QUERY = gql`query (
         }
       }
     }
-    repositories (first: 50, isFork: false) {
+    repositories (first: $firstRepos, after: $afterRepo, isFork: false) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         stargazerCount
         forkCount
       }
     }
-    pullRequests (first: 50, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
+    pullRequests (first: $firstPrs, after: $afterPr, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         merged
         mergedAt
@@ -180,9 +193,31 @@ function fetchUserScan(client, login) {
     const { user } = yield graphqlFetchAll(
       client,
       GITHUB_USER_SCAN_QUERY,
-      { login, first: 1 },
-      ["user", "followers"]
+      {
+        login,
+        firstFollowers: 100,
+        firstRepos: 100,
+        firstPrs: 100
+      },
+      [
+        {
+          path: ["user", "followers"],
+          limitParamName: "firstFollowers",
+          cursorParamName: "afterFollower"
+        },
+        {
+          path: ["user", "repositories"],
+          limitParamName: "firstRepos",
+          cursorParamName: "afterRepo"
+        },
+        {
+          path: ["user", "pullRequests"],
+          limitParamName: "firstPrs",
+          cursorParamName: "afterPr"
+        }
+      ]
     );
+    console.log(user);
     return user;
   });
 }

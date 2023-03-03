@@ -74,13 +74,17 @@ var GITHUB_USER_FOLLOWERS_QUERY = import_graphql_tag.default`query ($login: Stri
 }`;
 var GITHUB_USER_SCAN_QUERY = import_graphql_tag.default`query (
   $login: String!,
-  $first: Int!,
-  $after: String,
+  $firstFollowers: Int!,
+  $afterFollower: String,
+  $firstRepos: Int!,
+  $afterRepo: String,
+  $firstPrs: Int!,
+  $afterPr: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $first, after: $after) {
+    followers (first: $firstFollowers, after: $afterFollower) {
       totalCount
       pageInfo {
         hasNextPage
@@ -98,14 +102,23 @@ var GITHUB_USER_SCAN_QUERY = import_graphql_tag.default`query (
         }
       }
     }
-    repositories (first: 50, isFork: false) {
+    repositories (first: $firstRepos, after: $afterRepo, isFork: false) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         stargazerCount
         forkCount
       }
     }
-    pullRequests (first: 50, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
+    pullRequests (first: $firstPrs, after: $afterPr, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         merged
         mergedAt
@@ -213,9 +226,31 @@ function fetchUserScan(client, login) {
     const { user } = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
       client,
       GITHUB_USER_SCAN_QUERY,
-      { login, first: 1 },
-      ["user", "followers"]
+      {
+        login,
+        firstFollowers: 100,
+        firstRepos: 100,
+        firstPrs: 100
+      },
+      [
+        {
+          path: ["user", "followers"],
+          limitParamName: "firstFollowers",
+          cursorParamName: "afterFollower"
+        },
+        {
+          path: ["user", "repositories"],
+          limitParamName: "firstRepos",
+          cursorParamName: "afterRepo"
+        },
+        {
+          path: ["user", "pullRequests"],
+          limitParamName: "firstPrs",
+          cursorParamName: "afterPr"
+        }
+      ]
     );
+    console.log(user);
     return user;
   });
 }

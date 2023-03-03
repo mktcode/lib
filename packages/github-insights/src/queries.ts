@@ -17,38 +17,51 @@ export const GITHUB_USER_FOLLOWERS_QUERY = gql`query ($login: String!, $first: I
 
 export const GITHUB_USER_SCAN_QUERY = gql`query (
   $login: String!,
-  $first: Int!,
-  $after: String,
+  $firstFollowers: Int!,
+  $afterFollower: String,
+  $firstRepos: Int!,
+  $afterRepo: String,
+  $firstPrs: Int!,
+  $afterPr: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $first, after: $after) {
+    followers (first: $firstFollowers, after: $afterFollower) {
       totalCount
       pageInfo {
         hasNextPage
         endCursor
       }
       nodes {
-        repositories (first: 50, isFork: false) {
+        repositories (first: 100, isFork: false) {
           nodes {
             stargazerCount
             forkCount
           }
         }
-        followers (first: 50) {
+        followers {
           totalCount
         }
       }
     }
-    repositories (first: 50, isFork: false) {
+    repositories (first: $firstRepos, after: $afterRepo, isFork: false) {
+      totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         stargazerCount
         forkCount
       }
     }
-    pullRequests (first: 50, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
+    pullRequests (first: $firstPrs, after: $afterPr, states: [MERGED], orderBy: { field: CREATED_AT, direction: DESC}) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         merged
         mergedAt

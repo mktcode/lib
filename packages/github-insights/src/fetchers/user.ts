@@ -10,9 +10,32 @@ export async function fetchUserScan(
   const { user } = await graphqlFetchAll<{ user: UserScan }>(
     client,
     GITHUB_USER_SCAN_QUERY,
-    { login, first: 1 },
-    ['user', 'followers']
+    {
+      login,
+      firstFollowers: 100,
+      firstRepos: 100,
+      firstPrs: 100,
+    },
+    [
+      {
+        path: ['user', 'followers'],
+        limitParamName: 'firstFollowers',
+        cursorParamName: 'afterFollower',
+      },
+      {
+        path: ['user', 'repositories'],
+        limitParamName: 'firstRepos',
+        cursorParamName: 'afterRepo',
+      },
+      {
+        path: ['user', 'pullRequests'],
+        limitParamName: 'firstPrs',
+        cursorParamName: 'afterPr',
+      },
+    ]
   );
+
+  console.log(user)
 
   return user;
 }

@@ -41,30 +41,38 @@ var __async = (__this, __arguments, generator) => {
 // src/index.ts
 import { print } from "graphql";
 import { get, set } from "lodash";
-function graphqlFetchAll(client, query, variables, pathToPaginatedProperty, nodesFetched = 0) {
+function graphqlFetchAll(client, query, variables, paginators, currentData) {
   return __async(this, null, function* () {
-    const fullData = yield client(print(query), variables);
-    const {
-      nodes,
-      totalCount,
-      pageInfo: { hasNextPage, endCursor }
-    } = get(fullData, pathToPaginatedProperty);
-    nodesFetched += nodes.length;
-    if (hasNextPage) {
-      const perPage = Math.min(totalCount - nodesFetched, 100);
-      const nextData = yield graphqlFetchAll(
-        client,
-        query,
-        __spreadProps(__spreadValues({}, variables), { first: perPage, after: endCursor }),
-        pathToPaginatedProperty,
-        nodesFetched
-      );
-      const nextPageData = get(nextData, pathToPaginatedProperty);
-      set(fullData, pathToPaginatedProperty, __spreadProps(__spreadValues({}, nextPageData), {
-        nodes: [...nodes, ...nextPageData.nodes]
-      }));
+    console.log(JSON.stringify(variables));
+    const data = yield client(print(query), variables);
+    if (currentData) {
+      for (const paginator of paginators) {
+        if (paginator.done)
+          continue;
+        const nodes = get(data, paginator.path).nodes;
+        const currentNodes = get(currentData, paginator.path).nodes;
+        set(currentData, paginator.path, __spreadProps(__spreadValues({}, get(currentData, paginator.path)), {
+          nodes: [...currentNodes, ...nodes]
+        }));
+      }
+    } else {
+      currentData = data;
     }
-    return fullData;
+    for (const paginator of paginators) {
+      const { totalCount, pageInfo: { hasNextPage, endCursor } } = get(data, paginator.path);
+      const { nodes } = get(currentData, paginator.path);
+      if (hasNextPage) {
+        variables[paginator.limitParamName] = Math.min(totalCount - nodes.length, 100);
+        variables[paginator.cursorParamName] = endCursor;
+      } else {
+        paginator.done = true;
+      }
+    }
+    if (paginators.every((paginator) => paginator.done)) {
+      return currentData;
+    } else {
+      return graphqlFetchAll(client, query, variables, paginators, currentData);
+    }
   });
 }
 export {
