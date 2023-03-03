@@ -39,11 +39,75 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
-import { print } from "graphql";
+import { Kind, print } from "graphql";
 import { get, set } from "lodash";
-function graphqlFetchAll(client, query, variables, paginators, currentData) {
+
+// src/interface.ts
+function isLimitParameter(name) {
+  return name === "first" || name === "last";
+}
+function isCursorParameter(name) {
+  return name === "after" || name === "before";
+}
+
+// src/index.ts
+function getVarNamesFromArguments(argumentNodes, variableNames) {
+  let limitVarName;
+  let cursorVarName;
+  for (const argument of argumentNodes) {
+    if (argument.value.kind === Kind.VARIABLE && variableNames.includes(argument.value.name.value)) {
+      if (isLimitParameter(argument.name.value)) {
+        limitVarName = argument.value.name.value;
+      } else if (isCursorParameter(argument.name.value)) {
+        cursorVarName = argument.value.name.value;
+      }
+    }
+  }
+  return [limitVarName, cursorVarName];
+}
+function extractPaginatorsFromSelectionSet(selectionSet, variableNames, path = []) {
+  const paginators = [];
+  for (const selection of selectionSet.selections) {
+    if (selection.kind !== Kind.FIELD)
+      continue;
+    if (selection.arguments) {
+      const [limitVarName, cursorVarName] = getVarNamesFromArguments(selection.arguments, variableNames);
+      if (limitVarName && cursorVarName) {
+        paginators.push({
+          path: [...path, selection.name.value],
+          limitVarName,
+          cursorVarName
+        });
+      }
+    }
+    if (selection.selectionSet) {
+      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+    }
+  }
+  return paginators;
+}
+function extractPaginators(document) {
+  const queryOperation = document.definitions.find(
+    (definition) => definition.kind === Kind.OPERATION_DEFINITION && definition.operation === "query" && definition.variableDefinitions && definition.variableDefinitions.length > 0
+  );
+  if (!queryOperation)
+    throw new Error("No query operation with variables found in document");
+  const variableNames = queryOperation.variableDefinitions.map((variableDefinition) => variableDefinition.variable.name.value);
+  const paginationParameters = [];
+  paginationParameters.push(...extractPaginatorsFromSelectionSet(queryOperation.selectionSet, variableNames));
+  return paginationParameters;
+}
+function getHighestLevelPaginators(paginators) {
+  const highestLevelPaginators = [];
+  for (const paginator of paginators) {
+    if (!paginators.filter((p) => p !== paginator).some((otherPaginator) => otherPaginator.path.length < paginator.path.length)) {
+      highestLevelPaginators.push(paginator);
+    }
+  }
+  return highestLevelPaginators;
+}
+function fetchAllPages(client, query, variables, paginators, currentData) {
   return __async(this, null, function* () {
-    console.log(JSON.stringify(variables));
     const data = yield client(print(query), variables);
     if (currentData) {
       for (const paginator of paginators) {
@@ -62,8 +126,8 @@ function graphqlFetchAll(client, query, variables, paginators, currentData) {
       const { totalCount, pageInfo: { hasNextPage, endCursor } } = get(data, paginator.path);
       const { nodes } = get(currentData, paginator.path);
       if (hasNextPage) {
-        variables[paginator.limitParamName] = Math.min(totalCount - nodes.length, 100);
-        variables[paginator.cursorParamName] = endCursor;
+        variables[paginator.limitVarName] = Math.min(totalCount - nodes.length, 100);
+        variables[paginator.cursorVarName] = endCursor;
       } else {
         paginator.done = true;
       }
@@ -71,10 +135,19 @@ function graphqlFetchAll(client, query, variables, paginators, currentData) {
     if (paginators.every((paginator) => paginator.done)) {
       return currentData;
     } else {
-      return graphqlFetchAll(client, query, variables, paginators, currentData);
+      return fetchAllPages(client, query, variables, paginators, currentData);
     }
   });
 }
+function graphqlFetchAll(client, query, variables) {
+  return __async(this, null, function* () {
+    const paginators = getHighestLevelPaginators(extractPaginators(query));
+    return fetchAllPages(client, query, variables, paginators);
+  });
+}
 export {
+  extractPaginators,
+  extractPaginatorsFromSelectionSet,
+  getHighestLevelPaginators,
   graphqlFetchAll
 };
