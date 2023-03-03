@@ -17,14 +17,18 @@ export const GITHUB_USER_FOLLOWERS_QUERY = gql`query ($login: String!, $first: I
 
 export const GITHUB_USER_SCAN_QUERY = gql`query (
   $login: String!,
-  $followersBatchSize: Int = 50,
-  $followersAfter: String,
+  $first: Int!,
+  $after: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $followersBatchSize, after: $followersAfter) {
+    followers (first: $first, after: $after) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         repositories (first: 50, isFork: false) {
           nodes {

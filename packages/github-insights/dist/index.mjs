@@ -21,7 +21,7 @@ var __async = (__this, __arguments, generator) => {
 
 // src/index.ts
 import { graphql } from "@octokit/graphql";
-import { print as print2 } from "graphql";
+import { print } from "graphql";
 
 // src/queries.ts
 import gql from "graphql-tag";
@@ -41,14 +41,18 @@ var GITHUB_USER_FOLLOWERS_QUERY = gql`query ($login: String!, $first: Int = 1, $
 }`;
 var GITHUB_USER_SCAN_QUERY = gql`query (
   $login: String!,
-  $followersBatchSize: Int = 50,
-  $followersAfter: String,
+  $first: Int!,
+  $after: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $followersBatchSize, after: $followersAfter) {
+    followers (first: $first, after: $after) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         repositories (first: 50, isFork: false) {
           nodes {
@@ -170,19 +174,20 @@ function evaluateRepositoryScan(repositoryScan) {
 }
 
 // src/fetchers/user.ts
-import { print } from "graphql";
+import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
 function fetchUserScan(client, login) {
   return __async(this, null, function* () {
-    const { user } = yield client(
-      print(GITHUB_USER_SCAN_QUERY),
-      { login }
+    const { user } = yield graphqlFetchAll(
+      client,
+      GITHUB_USER_SCAN_QUERY,
+      { login, first: 1 },
+      ["user", "followers"]
     );
     return user;
   });
 }
 
 // src/index.ts
-import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
 var GithubInsights = class {
   constructor(options) {
     this.client = graphql.defaults({
@@ -195,14 +200,13 @@ var GithubInsights = class {
   scanUser(login) {
     return __async(this, null, function* () {
       const userScan = yield fetchUserScan(this.client, login);
-      const followers = yield graphqlFetchAll(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ["user", "followers"]);
       return evaluateUserScan(userScan);
     });
   }
   scanRepository(owner, name) {
     return __async(this, null, function* () {
       const { repository } = yield this.client(
-        print2(GITHUB_REPOSITORY_SCAN_QUERY),
+        print(GITHUB_REPOSITORY_SCAN_QUERY),
         { owner, name }
       );
       return evaluateRepositoryScan(repository);

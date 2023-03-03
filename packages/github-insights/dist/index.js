@@ -53,8 +53,8 @@ __export(src_exports, {
   GithubInsights: () => GithubInsights
 });
 module.exports = __toCommonJS(src_exports);
-var import_graphql2 = require("@octokit/graphql");
-var import_graphql3 = require("graphql");
+var import_graphql = require("@octokit/graphql");
+var import_graphql2 = require("graphql");
 
 // src/queries.ts
 var import_graphql_tag = __toESM(require("graphql-tag"));
@@ -74,14 +74,18 @@ var GITHUB_USER_FOLLOWERS_QUERY = import_graphql_tag.default`query ($login: Stri
 }`;
 var GITHUB_USER_SCAN_QUERY = import_graphql_tag.default`query (
   $login: String!,
-  $followersBatchSize: Int = 50,
-  $followersAfter: String,
+  $first: Int!,
+  $after: String,
 ) { 
   user (login: $login) {
     login
     createdAt
-    followers (first: $followersBatchSize, after: $followersAfter) {
+    followers (first: $first, after: $after) {
       totalCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
       nodes {
         repositories (first: 50, isFork: false) {
           nodes {
@@ -203,22 +207,23 @@ function evaluateRepositoryScan(repositoryScan) {
 }
 
 // src/fetchers/user.ts
-var import_graphql = require("graphql");
+var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 function fetchUserScan(client, login) {
   return __async(this, null, function* () {
-    const { user } = yield client(
-      (0, import_graphql.print)(GITHUB_USER_SCAN_QUERY),
-      { login }
+    const { user } = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
+      client,
+      GITHUB_USER_SCAN_QUERY,
+      { login, first: 1 },
+      ["user", "followers"]
     );
     return user;
   });
 }
 
 // src/index.ts
-var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
 var GithubInsights = class {
   constructor(options) {
-    this.client = import_graphql2.graphql.defaults({
+    this.client = import_graphql.graphql.defaults({
       baseUrl: options.sourceUrl,
       headers: {
         Authorization: `bearer ${options.viewerToken}`
@@ -228,14 +233,13 @@ var GithubInsights = class {
   scanUser(login) {
     return __async(this, null, function* () {
       const userScan = yield fetchUserScan(this.client, login);
-      const followers = yield (0, import_graphql_fetch_all.graphqlFetchAll)(this.client, GITHUB_USER_FOLLOWERS_QUERY, { login, first: 1 }, ["user", "followers"]);
       return evaluateUserScan(userScan);
     });
   }
   scanRepository(owner, name) {
     return __async(this, null, function* () {
       const { repository } = yield this.client(
-        (0, import_graphql3.print)(GITHUB_REPOSITORY_SCAN_QUERY),
+        (0, import_graphql2.print)(GITHUB_REPOSITORY_SCAN_QUERY),
         { owner, name }
       );
       return evaluateRepositoryScan(repository);
