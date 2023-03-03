@@ -58,13 +58,13 @@ var GITHUB_USER_SCAN_QUERY = gql`query (
         endCursor
       }
       nodes {
-        repositories (first: 50, isFork: false) {
+        repositories (first: 100, isFork: false) {
           nodes {
             stargazerCount
             forkCount
           }
         }
-        followers (first: 50) {
+        followers {
           totalCount
         }
       }
@@ -198,24 +198,7 @@ function fetchUserScan(client, login) {
         firstFollowers: 100,
         firstRepos: 100,
         firstPrs: 100
-      },
-      [
-        {
-          path: ["user", "followers"],
-          limitParamName: "firstFollowers",
-          cursorParamName: "afterFollower"
-        },
-        {
-          path: ["user", "repositories"],
-          limitParamName: "firstRepos",
-          cursorParamName: "afterRepo"
-        },
-        {
-          path: ["user", "pullRequests"],
-          limitParamName: "firstPrs",
-          cursorParamName: "afterPr"
-        }
-      ]
+      }
     );
     console.log(user);
     return user;

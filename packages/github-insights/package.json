@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/github-insights",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "description": "Utilities to fetch and evaluate GitHub data.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -19,7 +19,7 @@
   },
   "homepage": "https://github.com/mktcode/lib/tree/master/packages/github-insights#readme",
   "dependencies": {
-    "@mktcodelib/graphql-fetch-all": "workspace:^0.0.1",
+    "@mktcodelib/graphql-fetch-all": "workspace:^0.1.0",
     "@octokit/graphql": "^5.0.5",
     "@types/lodash": "^4.14.191",
     "graphql": "^16.6.0",

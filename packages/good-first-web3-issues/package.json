@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/good-first-web3-issues",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Utility to fetch all nodes in a paginated graphql query.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/mktcode/lib/tree/master/packages/good-first-web3-issues#readme",
   "dependencies": {
-    "@mktcodelib/graphql-fetch-all": "workspace:^0.0.1",
+    "@mktcodelib/graphql-fetch-all": "workspace:^0.1.0",
     "@octokit/graphql": "^5.0.5",
     "express": "^4.18.2",
     "graphql": "^16.6.0",

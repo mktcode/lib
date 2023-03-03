@@ -624,8 +624,7 @@ var GoodFirstWeb3Issues = class {
         const orgResponse = yield graphqlFetchAll(
           this.github,
           ORG_REPOS_QUERY,
-          { login, first: 100 },
-          ["organization", "repositories"]
+          { login, first: 100 }
         );
         orgOrUser = orgResponse.organization;
       } catch (e) {
@@ -633,8 +632,7 @@ var GoodFirstWeb3Issues = class {
           const userResponse = yield graphqlFetchAll(
             this.github,
             USER_REPOS_QUERY,
-            { login, first: 100 },
-            ["user", "repositories"]
+            { login, first: 100 }
           );
           orgOrUser = userResponse.user;
         } catch (e2) {
@@ -651,8 +649,7 @@ var GoodFirstWeb3Issues = class {
           const issuesResponse = yield graphqlFetchAll(
             this.github,
             REPO_ISSUES_QUERY,
-            { owner: orgOrUser.login, name: repo.name, first: 100 },
-            ["repository", "issues"]
+            { owner: orgOrUser.login, name: repo.name, first: 100 }
           );
           repo.issues.nodes = issuesResponse.repository.issues.nodes;
         } catch (e) {

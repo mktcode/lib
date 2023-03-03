@@ -75,7 +75,6 @@ export class GoodFirstWeb3Issues {
         this.github,
         ORG_REPOS_QUERY,
         { login, first: 100 },
-        ['organization', 'repositories']
       );
       orgOrUser = orgResponse.organization;
     } catch {
@@ -84,7 +83,6 @@ export class GoodFirstWeb3Issues {
           this.github,
           USER_REPOS_QUERY,
           { login, first: 100 },
-          ['user', 'repositories']
         );
         orgOrUser = userResponse.user;
       } catch (e) {
@@ -104,7 +102,6 @@ export class GoodFirstWeb3Issues {
           this.github,
           REPO_ISSUES_QUERY,
           { owner: orgOrUser.login, name: repo.name, first: 100 },
-          ['repository', 'issues']
         );
         repo.issues.nodes = issuesResponse.repository.issues.nodes;
       } catch (e) {
