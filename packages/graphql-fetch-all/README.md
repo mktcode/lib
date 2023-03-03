@@ -3,7 +3,7 @@
 This package is still tied to GitHub's GraphQL API but might become more generic in the future.
 
 ```bash
-npm i @mktcode/graphql-fetch-all
+npm i @mktcodelib/graphql-fetch-all
 ```
 
 ```js
