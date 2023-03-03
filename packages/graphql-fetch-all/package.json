@@ -13,6 +13,11 @@
   "keywords": [],
   "author": "mktcode",
   "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mktcode/lib.git"
+  },
+  "homepage": "https://github.com/mktcode/lib/tree/master/packages/graphql-fetch-all#readme",
   "dependencies": {
     "@octokit/graphql": "^5.0.5",
     "graphql": "^16.6.0",
