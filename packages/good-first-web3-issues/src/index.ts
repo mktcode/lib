@@ -4,7 +4,7 @@ import { graphql } from "@octokit/graphql";
 import { graphqlFetchAll } from '@mktcodelib/graphql-fetch-all';
 import { whitelistCycle } from './whitelist';
 import { ORG_REPOS_QUERY, REPO_ISSUES_QUERY, USER_REPOS_QUERY } from './queries';
-import { Organization, OrganizationNode, RepositoryNode } from './types';
+import { Organization, OrganizationNode, RateLimit, RepositoryNode } from './types';
 
 type Options = {
   githubToken: string;
@@ -109,15 +109,18 @@ export class GoodFirstWeb3Issues {
       this.log(`Removed ${login}!`);
       return;
     }
+
+    let remainingRateLimit = 5000;
   
     for (const repo of orgOrUser.repositories.nodes) {
       try {
-        const issuesResponse = await graphqlFetchAll<{ repository: RepositoryNode }>(
+        const issuesResponse = await graphqlFetchAll<{ rateLimit: RateLimit, repository: RepositoryNode }>(
           this.github,
           REPO_ISSUES_QUERY,
           { owner: orgOrUser.login, name: repo.name, first: 100 },
         );
         repo.issues.nodes = issuesResponse.repository.issues.nodes;
+        remainingRateLimit = issuesResponse.rateLimit.remaining;
       } catch (e) {
         this.log(e);
       }
@@ -134,12 +137,21 @@ export class GoodFirstWeb3Issues {
     await this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
   
     this.log(`Synced ${login}!`);
+
+    let waitTime = this.syncInterval;
+    if (remainingRateLimit < 1000) {
+      waitTime = waitTime * 5;
+    }
+
+    this.log(`Rate limit is ${remainingRateLimit}! Waiting ${waitTime / 1e3 / 60} minutes...`)
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+
+    this.sync();
   }
 
   run() {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(() => this.sync(), this.syncInterval);
   }
 }

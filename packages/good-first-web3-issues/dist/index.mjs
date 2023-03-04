@@ -555,6 +555,9 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
   }
 }`;
 var REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $first: Int!, $after: String) {
+  rateLimit {
+    remaining
+  }
   repository (owner: $owner, name: $name) {
     issues (first: $first, after: $after, labels: ["good first issue"], states: [OPEN]) {
       totalCount
@@ -660,6 +663,7 @@ var GoodFirstWeb3Issues = class {
         this.log(`Removed ${login}!`);
         return;
       }
+      let remainingRateLimit = 5e3;
       for (const repo of orgOrUser.repositories.nodes) {
         try {
           const issuesResponse = yield graphqlFetchAll(
@@ -668,6 +672,7 @@ var GoodFirstWeb3Issues = class {
             { owner: orgOrUser.login, name: repo.name, first: 100 }
           );
           repo.issues.nodes = issuesResponse.repository.issues.nodes;
+          remainingRateLimit = issuesResponse.rateLimit.remaining;
         } catch (e) {
           this.log(e);
         }
@@ -680,13 +685,19 @@ var GoodFirstWeb3Issues = class {
       }
       yield this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
       this.log(`Synced ${login}!`);
+      let waitTime = this.syncInterval;
+      if (remainingRateLimit < 1e3) {
+        waitTime = waitTime * 5;
+      }
+      this.log(`Rate limit is ${remainingRateLimit}! Waiting ${waitTime / 1e3 / 60} minutes...`);
+      yield new Promise((resolve) => setTimeout(resolve, waitTime));
+      this.sync();
     });
   }
   run() {
     this.db.connect();
     this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
     this.sync();
-    setInterval(() => this.sync(), this.syncInterval);
   }
 };
 export {

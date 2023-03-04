@@ -62,3 +62,7 @@ export type OrganizationNode = Organization & {
     nodes: RepositoryNode[];
   }
 }
+
+export type RateLimit = {
+  remaining: number;
+}
