@@ -4,7 +4,7 @@ import { graphql } from "@octokit/graphql";
 import { graphqlFetchAll } from '@mktcodelib/graphql-fetch-all';
 import { whitelistCycle } from './whitelist';
 import { ORG_REPOS_QUERY, REPO_ISSUES_QUERY, USER_REPOS_QUERY } from './queries';
-import { Organization, Repository } from './types';
+import { Organization, OrganizationNode, RepositoryNode } from './types';
 
 type Options = {
   githubToken: string;
@@ -64,6 +64,19 @@ export class GoodFirstWeb3Issues {
     }
   }
 
+  sanitizeData(orgOrUser: OrganizationNode): Organization {
+    return {
+      ...orgOrUser,
+      repositories: orgOrUser.repositories.nodes.map((repo) => ({
+        ...repo,
+        issues: repo.issues.nodes.map((issue) => ({
+          ...issue,
+          labels: issue.labels.nodes,
+        })),
+      })),
+    };
+  }
+
   async sync() {
     const { value: login } = whitelistCycle.next();
     this.log(`Syncing ${login}...`)
@@ -71,7 +84,7 @@ export class GoodFirstWeb3Issues {
     let orgOrUser;
   
     try {
-      const orgResponse = await graphqlFetchAll<{ organization: Organization }>(
+      const orgResponse = await graphqlFetchAll<{ organization: OrganizationNode }>(
         this.github,
         ORG_REPOS_QUERY,
         { login, first: 100 },
@@ -79,7 +92,7 @@ export class GoodFirstWeb3Issues {
       orgOrUser = orgResponse.organization;
     } catch {
       try {
-        const userResponse = await graphqlFetchAll<{ user: Organization }>(
+        const userResponse = await graphqlFetchAll<{ user: OrganizationNode }>(
           this.github,
           USER_REPOS_QUERY,
           { login, first: 100 },
@@ -98,7 +111,7 @@ export class GoodFirstWeb3Issues {
   
     for (const repo of orgOrUser.repositories.nodes) {
       try {
-        const issuesResponse = await graphqlFetchAll<{ repository: Repository }>(
+        const issuesResponse = await graphqlFetchAll<{ repository: RepositoryNode }>(
           this.github,
           REPO_ISSUES_QUERY,
           { owner: orgOrUser.login, name: repo.name, first: 100 },
@@ -117,7 +130,7 @@ export class GoodFirstWeb3Issues {
       return;
     }
   
-    await this.db.hSet('orgs', login, JSON.stringify(orgOrUser));
+    await this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
   
     this.log(`Synced ${login}!`);
   }

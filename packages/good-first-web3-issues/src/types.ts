@@ -8,11 +8,15 @@ export type Issue = {
   id: string;
   title: string;
   url: string;
+  labels: Label[]
+};
+
+export type IssueNode = Issue & {
   labels: {
     totalCount: number;
-    nodes: Label[]
-  };
-};
+    nodes: Label[];
+  }
+}
 
 export type Repository = {
   id: string;
@@ -20,11 +24,15 @@ export type Repository = {
   description: string;
   url: string;
   stargazersCount: number;
+  issues: Issue[]
+};
+
+export type RepositoryNode = Repository & {
   issues: {
     totalCount: number;
-    nodes: Issue[]
-  };
-};
+    nodes: IssueNode[];
+  }
+}
 
 export type Organization = {
   id: string;
@@ -34,8 +42,12 @@ export type Organization = {
   url: string;
   websiteUrl: string;
   avatarUrl: string;
+  repositories: Repository[];
+};
+
+export type OrganizationNode = Organization & {
   repositories: {
     totalCount: number;
-    nodes: Repository[];
-  };
-};
+    nodes: RepositoryNode[];
+  }
+}

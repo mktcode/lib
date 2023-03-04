@@ -1,10 +1,27 @@
 "use strict";
 var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
+var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __propIsEnum = Object.prototype.propertyIsEnumerable;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp.call(b, prop))
+      __defNormalProp(a, prop, b[prop]);
+  if (__getOwnPropSymbols)
+    for (var prop of __getOwnPropSymbols(b)) {
+      if (__propIsEnum.call(b, prop))
+        __defNormalProp(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __export = (target, all) => {
   for (var name in all)
     __defProp(target, name, { get: all[name], enumerable: true });
@@ -517,10 +534,6 @@ var whitelistCycle = cycleWhitelist();
 // src/queries.ts
 var import_graphql_tag = __toESM(require("graphql-tag"));
 var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first: Int!, $after: String) {
-  rateLimit {
-    cost
-    remaining
-  }
   organization (login: $login) {
     id
     login
@@ -544,18 +557,14 @@ var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first:
         }
       }
     }
-    __typename
   }
 }`;
 var USER_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first: Int!, $after: String) {
-  rateLimit {
-    cost
-    remaining
-  }
   user (login: $login) {
     id
     login
     name
+    description: bio
     url
     websiteUrl
     avatarUrl
@@ -574,14 +583,9 @@ var USER_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first
         }
       }
     }
-    __typename
   }
 }`;
 var REPO_ISSUES_QUERY = import_graphql_tag.default`query ($owner: String!, $name: String!, $first: Int!, $after: String) {
-  rateLimit {
-    cost
-    remaining
-  }
   repository (owner: $owner, name: $name) {
     issues (first: $first, after: $after, labels: ["good first issue"], states: [OPEN]) {
       totalCount
@@ -648,6 +652,15 @@ var GoodFirstWeb3Issues = class {
       console.log(...args);
     }
   }
+  sanitizeData(orgOrUser) {
+    return __spreadProps(__spreadValues({}, orgOrUser), {
+      repositories: orgOrUser.repositories.nodes.map((repo) => __spreadProps(__spreadValues({}, repo), {
+        issues: repo.issues.nodes.map((issue) => __spreadProps(__spreadValues({}, issue), {
+          labels: issue.labels.nodes
+        }))
+      }))
+    });
+  }
   sync() {
     return __async(this, null, function* () {
       const { value: login } = whitelistCycle.next();
@@ -695,7 +708,7 @@ var GoodFirstWeb3Issues = class {
         this.log(`Removed ${login}!`);
         return;
       }
-      yield this.db.hSet("orgs", login, JSON.stringify(orgOrUser));
+      yield this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
       this.log(`Synced ${login}!`);
     });
   }
