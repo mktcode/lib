@@ -4,17 +4,28 @@ export type Label = {
   color: string;
 }
 
+export type Assignee = {
+  id: string;
+  login: string;
+  avatarUrl: string;
+}
+
 export type Issue = {
   id: string;
   title: string;
   url: string;
   labels: Label[]
+  assignees: Assignee[]
 };
 
 export type IssueNode = Issue & {
   labels: {
     totalCount: number;
     nodes: Label[];
+  }
+  assignees: {
+    totalCount: number;
+    nodes: Assignee[];
   }
 }
 

@@ -656,7 +656,8 @@ var GoodFirstWeb3Issues = class {
     return __spreadProps(__spreadValues({}, orgOrUser), {
       repositories: orgOrUser.repositories.nodes.map((repo) => __spreadProps(__spreadValues({}, repo), {
         issues: repo.issues.nodes.map((issue) => __spreadProps(__spreadValues({}, issue), {
-          labels: issue.labels.nodes
+          labels: issue.labels.nodes,
+          assignees: issue.assignees.nodes
         }))
       }))
     });

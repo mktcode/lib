@@ -3,16 +3,26 @@ type Label = {
     name: string;
     color: string;
 };
+type Assignee = {
+    id: string;
+    login: string;
+    avatarUrl: string;
+};
 type Issue = {
     id: string;
     title: string;
     url: string;
     labels: Label[];
+    assignees: Assignee[];
 };
 type IssueNode = Issue & {
     labels: {
         totalCount: number;
         nodes: Label[];
+    };
+    assignees: {
+        totalCount: number;
+        nodes: Assignee[];
     };
 };
 type Repository = {

@@ -72,6 +72,7 @@ export class GoodFirstWeb3Issues {
         issues: repo.issues.nodes.map((issue) => ({
           ...issue,
           labels: issue.labels.nodes,
+          assignees: issue.assignees.nodes,
         })),
       })),
     };
