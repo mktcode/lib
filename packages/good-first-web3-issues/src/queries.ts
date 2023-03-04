@@ -1,6 +1,9 @@
 import gql from 'graphql-tag';
 
 export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) {
+  rateLimit {
+    remaining
+  }
   organization (login: $login) {
     id
     login
@@ -28,6 +31,9 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
 }`;
 
 export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) {
+  rateLimit {
+    remaining
+  }
   user (login: $login) {
     id
     login

@@ -534,6 +534,9 @@ var whitelistCycle = cycleWhitelist();
 // src/queries.ts
 var import_graphql_tag = __toESM(require("graphql-tag"));
 var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first: Int!, $after: String) {
+  rateLimit {
+    remaining
+  }
   organization (login: $login) {
     id
     login
@@ -560,6 +563,9 @@ var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first:
   }
 }`;
 var USER_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first: Int!, $after: String) {
+  rateLimit {
+    remaining
+  }
   user (login: $login) {
     id
     login
@@ -665,11 +671,22 @@ var GoodFirstWeb3Issues = class {
       }))
     });
   }
+  wait(remainingRateLimit) {
+    return __async(this, null, function* () {
+      let waitTime = this.syncInterval;
+      if (remainingRateLimit < 1e3) {
+        waitTime = waitTime * 5;
+      }
+      this.log(`Rate limit is ${remainingRateLimit}! Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes...`);
+      yield new Promise((resolve) => setTimeout(resolve, waitTime));
+    });
+  }
   sync() {
     return __async(this, null, function* () {
       const { value: login } = whitelistCycle.next();
       this.log(`Syncing ${login}...`);
       let orgOrUser;
+      let remainingRateLimit = 5e3;
       try {
         const orgResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
           this.github,
@@ -677,6 +694,7 @@ var GoodFirstWeb3Issues = class {
           { login, first: 100 }
         );
         orgOrUser = orgResponse.organization;
+        remainingRateLimit = orgResponse.rateLimit.remaining;
       } catch (e) {
         try {
           const userResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
@@ -685,6 +703,7 @@ var GoodFirstWeb3Issues = class {
             { login, first: 100 }
           );
           orgOrUser = userResponse.user;
+          remainingRateLimit = userResponse.rateLimit.remaining;
         } catch (e2) {
           this.log(e2);
         }
@@ -692,9 +711,10 @@ var GoodFirstWeb3Issues = class {
       if (!orgOrUser) {
         this.db.hDel("orgs", login);
         this.log(`Removed ${login}!`);
+        yield this.wait(remainingRateLimit);
+        this.sync();
         return;
       }
-      let remainingRateLimit = 5e3;
       for (const repo of orgOrUser.repositories.nodes) {
         try {
           const issuesResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
@@ -712,23 +732,22 @@ var GoodFirstWeb3Issues = class {
       if (orgOrUser.repositories.nodes.length === 0) {
         this.db.hDel("orgs", login);
         this.log(`Removed ${login}!`);
+        yield this.wait(remainingRateLimit);
+        this.sync();
         return;
       }
       yield this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
       this.log(`Synced ${login}!`);
-      let waitTime = this.syncInterval;
-      if (remainingRateLimit < 1e3) {
-        waitTime = waitTime * 5;
-      }
-      this.log(`Rate limit is ${remainingRateLimit}! Waiting ${waitTime / 1e3 / 60} minutes...`);
-      yield new Promise((resolve) => setTimeout(resolve, waitTime));
+      yield this.wait(remainingRateLimit);
       this.sync();
     });
   }
   run() {
     this.db.connect();
-    this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
-    this.sync();
+    this.server.listen(this.port, () => {
+      console.log(`Listening on http://localhost:${this.port}`);
+      this.sync();
+    });
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

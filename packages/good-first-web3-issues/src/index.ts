@@ -78,27 +78,40 @@ export class GoodFirstWeb3Issues {
     };
   }
 
+  async wait(remainingRateLimit: number) {
+    let waitTime = this.syncInterval;
+    if (remainingRateLimit < 1000) {
+      waitTime = waitTime * 5;
+    }
+
+    this.log(`Rate limit is ${remainingRateLimit}! Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes...`)
+    await new Promise((resolve) => setTimeout(resolve, waitTime));
+  }
+
   async sync() {
     const { value: login } = whitelistCycle.next();
     this.log(`Syncing ${login}...`)
   
     let orgOrUser;
+    let remainingRateLimit = 5000;
   
     try {
-      const orgResponse = await graphqlFetchAll<{ organization: OrganizationNode }>(
+      const orgResponse = await graphqlFetchAll<{ rateLimit: RateLimit, organization: OrganizationNode }>(
         this.github,
         ORG_REPOS_QUERY,
         { login, first: 100 },
       );
       orgOrUser = orgResponse.organization;
+      remainingRateLimit = orgResponse.rateLimit.remaining;
     } catch {
       try {
-        const userResponse = await graphqlFetchAll<{ user: OrganizationNode }>(
+        const userResponse = await graphqlFetchAll<{ rateLimit: RateLimit, user: OrganizationNode }>(
           this.github,
           USER_REPOS_QUERY,
           { login, first: 100 },
         );
         orgOrUser = userResponse.user;
+        remainingRateLimit = userResponse.rateLimit.remaining;
       } catch (e) {
         this.log(e);
       }
@@ -107,10 +120,12 @@ export class GoodFirstWeb3Issues {
     if (!orgOrUser) {
       this.db.hDel('orgs', login)
       this.log(`Removed ${login}!`);
+
+      await this.wait(remainingRateLimit);
+      this.sync();
+
       return;
     }
-
-    let remainingRateLimit = 5000;
   
     for (const repo of orgOrUser.repositories.nodes) {
       try {
@@ -131,27 +146,25 @@ export class GoodFirstWeb3Issues {
     if (orgOrUser.repositories.nodes.length === 0) {
       this.db.hDel('orgs', login)
       this.log(`Removed ${login}!`);
+
+      await this.wait(remainingRateLimit);
+      this.sync();
+
       return;
     }
   
     await this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
-  
     this.log(`Synced ${login}!`);
 
-    let waitTime = this.syncInterval;
-    if (remainingRateLimit < 1000) {
-      waitTime = waitTime * 5;
-    }
-
-    this.log(`Rate limit is ${remainingRateLimit}! Waiting ${waitTime / 1e3 / 60} minutes...`)
-    await new Promise((resolve) => setTimeout(resolve, waitTime));
-
+    await this.wait(remainingRateLimit);
     this.sync();
   }
 
   run() {
     this.db.connect();
-    this.server.listen(this.port, () => console.log(`Listening on http://localhost:${this.port}`));
-    this.sync();
+    this.server.listen(this.port, () => {
+      console.log(`Listening on http://localhost:${this.port}`)
+      this.sync();
+    });
   }
 }

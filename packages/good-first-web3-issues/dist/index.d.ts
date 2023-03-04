@@ -73,6 +73,7 @@ declare class GoodFirstWeb3Issues {
     constructor({ githubToken, port, redisConfig, syncInterval, debug, }: Options);
     log(...args: any[]): void;
     sanitizeData(orgOrUser: OrganizationNode): Organization;
+    wait(remainingRateLimit: number): Promise<void>;
     sync(): Promise<void>;
     run(): void;
 }
