@@ -98,7 +98,6 @@ const whitelist = [
 	"FuelLabs",
 	"DuneAnalytics",
 	"Manta-Network",
-	"fei--protocol",
 	"OlympusDAO",
 	"Synthetixio",
 	"ribbon-finance",

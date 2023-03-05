@@ -1,4 +1,5 @@
 import express from 'express';
+import cors, { CorsOptions } from 'cors';
 import { createClient } from 'redis';
 import { graphql } from "@octokit/graphql";
 import { graphqlFetchAll } from '@mktcodelib/graphql-fetch-all';
@@ -11,6 +12,7 @@ type Options = {
   port?: number;
   redisConfig?: Record<string, any>;
   syncInterval?: number;
+  corsOrigin?: CorsOptions['origin']
   debug?: boolean;
 }
 
@@ -28,6 +30,7 @@ export class GoodFirstWeb3Issues {
     port = 3000,
     redisConfig = {},
     syncInterval = 1e3 * 60 * 5,
+    corsOrigin = /openq\.dev$/,
     debug = false,
   }: Options) {
     this.port = port;
@@ -39,6 +42,7 @@ export class GoodFirstWeb3Issues {
 
 
     this.server = express();
+    this.server.use(cors({ origin: corsOrigin }))
     this.server.get('/', async (_req, res) => {
       const cached = await this.db.hGetAll('orgs');
     

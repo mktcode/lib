@@ -40,6 +40,7 @@ var __async = (__this, __arguments, generator) => {
 
 // src/index.ts
 import express from "express";
+import cors from "cors";
 import { createClient } from "redis";
 import { graphql } from "@octokit/graphql";
 import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
@@ -145,7 +146,6 @@ var whitelist = [
   "FuelLabs",
   "DuneAnalytics",
   "Manta-Network",
-  "fei--protocol",
   "OlympusDAO",
   "Synthetixio",
   "ribbon-finance",
@@ -602,6 +602,7 @@ var GoodFirstWeb3Issues = class {
     port = 3e3,
     redisConfig = {},
     syncInterval = 1e3 * 60 * 5,
+    corsOrigin = /openq\.dev$/,
     debug = false
   }) {
     this.port = port;
@@ -610,6 +611,7 @@ var GoodFirstWeb3Issues = class {
     this.db = createClient(redisConfig);
     this.db.on("error", (err) => console.log("Redis Client Error", err));
     this.server = express();
+    this.server.use(cors({ origin: corsOrigin }));
     this.server.get("/", (_req, res) => __async(this, null, function* () {
       const cached = yield this.db.hGetAll("orgs");
       if (cached) {

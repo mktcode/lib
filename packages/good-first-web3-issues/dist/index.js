@@ -71,6 +71,7 @@ __export(src_exports, {
 });
 module.exports = __toCommonJS(src_exports);
 var import_express = __toESM(require("express"));
+var import_cors = __toESM(require("cors"));
 var import_redis = require("redis");
 var import_graphql = require("@octokit/graphql");
 var import_graphql_fetch_all = require("@mktcodelib/graphql-fetch-all");
@@ -176,7 +177,6 @@ var whitelist = [
   "FuelLabs",
   "DuneAnalytics",
   "Manta-Network",
-  "fei--protocol",
   "OlympusDAO",
   "Synthetixio",
   "ribbon-finance",
@@ -633,6 +633,7 @@ var GoodFirstWeb3Issues = class {
     port = 3e3,
     redisConfig = {},
     syncInterval = 1e3 * 60 * 5,
+    corsOrigin = /openq\.dev$/,
     debug = false
   }) {
     this.port = port;
@@ -641,6 +642,7 @@ var GoodFirstWeb3Issues = class {
     this.db = (0, import_redis.createClient)(redisConfig);
     this.db.on("error", (err) => console.log("Redis Client Error", err));
     this.server = (0, import_express.default)();
+    this.server.use((0, import_cors.default)({ origin: corsOrigin }));
     this.server.get("/", (_req, res) => __async(this, null, function* () {
       const cached = yield this.db.hGetAll("orgs");
       if (cached) {

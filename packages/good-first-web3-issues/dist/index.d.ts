@@ -1,3 +1,5 @@
+import { CorsOptions } from 'cors';
+
 type Label = {
     id: string;
     name: string;
@@ -61,6 +63,7 @@ type Options = {
     port?: number;
     redisConfig?: Record<string, any>;
     syncInterval?: number;
+    corsOrigin?: CorsOptions['origin'];
     debug?: boolean;
 };
 declare class GoodFirstWeb3Issues {
@@ -70,7 +73,7 @@ declare class GoodFirstWeb3Issues {
     private db;
     private server;
     private github;
-    constructor({ githubToken, port, redisConfig, syncInterval, debug, }: Options);
+    constructor({ githubToken, port, redisConfig, syncInterval, corsOrigin, debug, }: Options);
     log(...args: any[]): void;
     sanitizeData(orgOrUser: OrganizationNode): Organization;
     wait(remainingRateLimit: number): Promise<void>;
