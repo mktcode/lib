@@ -524,6 +524,14 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
         name
         description
         url
+        stargazerCount
+        languages (first: 10) {
+          nodes {
+            id
+            name
+            color
+          }
+        }
         issues {
           totalCount
         }
@@ -553,6 +561,14 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
         name
         description
         url
+        stargazerCount
+        languages (first: 10) {
+          nodes {
+            id
+            name
+            color
+          }
+        }
         issues {
           totalCount
         }
@@ -635,6 +651,7 @@ var GoodFirstWeb3Issues = class {
   sanitizeData(orgOrUser) {
     return __spreadProps(__spreadValues({}, orgOrUser), {
       repositories: orgOrUser.repositories.nodes.map((repo) => __spreadProps(__spreadValues({}, repo), {
+        languages: repo.languages.nodes,
         issues: repo.issues.nodes.map((issue) => __spreadProps(__spreadValues({}, issue), {
           labels: issue.labels.nodes,
           assignees: issue.assignees.nodes

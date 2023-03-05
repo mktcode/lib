@@ -73,6 +73,7 @@ export class GoodFirstWeb3Issues {
       ...orgOrUser,
       repositories: orgOrUser.repositories.nodes.map((repo) => ({
         ...repo,
+        languages: repo.languages.nodes,
         issues: repo.issues.nodes.map((issue) => ({
           ...issue,
           labels: issue.labels.nodes,

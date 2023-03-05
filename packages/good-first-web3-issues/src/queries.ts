@@ -22,6 +22,14 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
         name
         description
         url
+        stargazerCount
+        languages (first: 10) {
+          nodes {
+            id
+            name
+            color
+          }
+        }
         issues {
           totalCount
         }
@@ -52,6 +60,14 @@ export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after
         name
         description
         url
+        stargazerCount
+        languages (first: 10) {
+          nodes {
+            id
+            name
+            color
+          }
+        }
         issues {
           totalCount
         }

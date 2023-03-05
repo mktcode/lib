@@ -4,6 +4,12 @@ export type Label = {
   color: string;
 }
 
+export type Language = {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export type Assignee = {
   id: string;
   login: string;
@@ -35,10 +41,15 @@ export type Repository = {
   description: string;
   url: string;
   stargazersCount: number;
+  languages: Language[];
   issues: Issue[]
 };
 
 export type RepositoryNode = Repository & {
+  languages: {
+    totalCount: number;
+    nodes: Language[];
+  }
   issues: {
     totalCount: number;
     nodes: IssueNode[];

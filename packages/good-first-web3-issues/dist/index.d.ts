@@ -5,6 +5,11 @@ type Label = {
     name: string;
     color: string;
 };
+type Language = {
+    id: string;
+    name: string;
+    color: string;
+};
 type Assignee = {
     id: string;
     login: string;
@@ -33,9 +38,14 @@ type Repository = {
     description: string;
     url: string;
     stargazersCount: number;
+    languages: Language[];
     issues: Issue[];
 };
 type RepositoryNode = Repository & {
+    languages: {
+        totalCount: number;
+        nodes: Language[];
+    };
     issues: {
         totalCount: number;
         nodes: IssueNode[];
