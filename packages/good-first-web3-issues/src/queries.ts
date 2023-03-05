@@ -91,6 +91,7 @@ export const REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $fi
       }
       nodes {
         id
+        number
         title
         url
         labels (first: 10) {
@@ -107,6 +108,9 @@ export const REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $fi
             name
             avatarUrl
           }
+        }
+        comments {
+          totalCount
         }
       }
     }

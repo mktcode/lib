@@ -591,6 +591,7 @@ var REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $first: Int!
       }
       nodes {
         id
+        number
         title
         url
         labels (first: 10) {
@@ -607,6 +608,9 @@ var REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $first: Int!
             name
             avatarUrl
           }
+        }
+        comments {
+          totalCount
         }
       }
     }

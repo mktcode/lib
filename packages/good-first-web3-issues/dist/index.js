@@ -622,6 +622,7 @@ var REPO_ISSUES_QUERY = import_graphql_tag.default`query ($owner: String!, $name
       }
       nodes {
         id
+        number
         title
         url
         labels (first: 10) {
@@ -638,6 +639,9 @@ var REPO_ISSUES_QUERY = import_graphql_tag.default`query ($owner: String!, $name
             name
             avatarUrl
           }
+        }
+        comments {
+          totalCount
         }
       }
     }
