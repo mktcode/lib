@@ -522,6 +522,7 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount
@@ -559,6 +560,7 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount

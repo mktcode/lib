@@ -553,6 +553,7 @@ var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first:
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount
@@ -590,6 +591,7 @@ var USER_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount

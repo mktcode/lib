@@ -20,6 +20,7 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount
@@ -58,6 +59,7 @@ export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after
       }
       nodes {
         name
+        nameWithOwner
         description
         url
         stargazerCount
