@@ -521,6 +521,7 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description
@@ -559,6 +560,7 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description

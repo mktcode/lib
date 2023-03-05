@@ -19,6 +19,7 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description
@@ -58,6 +59,7 @@ export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description

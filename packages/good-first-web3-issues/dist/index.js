@@ -552,6 +552,7 @@ var ORG_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first:
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description
@@ -590,6 +591,7 @@ var USER_REPOS_QUERY = import_graphql_tag.default`query ($login: String!, $first
         endCursor
       }
       nodes {
+        id
         name
         nameWithOwner
         description
