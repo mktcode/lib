@@ -57,12 +57,13 @@ var import_express = __toESM(require("express"));
 var import_cors = __toESM(require("cors"));
 var import_redis = require("redis");
 var import_ethers = require("ethers");
+var import_express_graphql = require("express-graphql");
 var Web3Indexer = class {
   constructor({
     provider,
-    port = 3e3,
     redisConfig = {},
     corsOrigin = /openq\.dev$/,
+    port = 3e3,
     debug = false
   }) {
     this.contracts = [];
@@ -78,7 +79,7 @@ var Web3Indexer = class {
     this.db.connect();
     this.server = (0, import_express.default)();
     this.server.use((0, import_cors.default)({ origin: corsOrigin }));
-    this.server.get("/:eventName", (_req, res) => __async(this, null, function* () {
+    this.server.get("/events/:eventName", (_req, res) => __async(this, null, function* () {
       const cached = yield this.db.hGetAll(_req.params.eventName);
       if (cached) {
         Object.keys(cached).forEach((key) => {
@@ -87,9 +88,6 @@ var Web3Indexer = class {
       }
       res.send(cached || {});
     }));
-    this.server.listen(this.port, () => {
-      console.log(`Listening on http://localhost:${this.port}`);
-    });
   }
   log(...args) {
     if (this.debug) {
@@ -100,6 +98,13 @@ var Web3Indexer = class {
     const contract = new import_ethers.Contract(address, abi, this.provider);
     this.contracts.push(contract);
     callback(contract);
+  }
+  graphql(schema, resolvers) {
+    this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
+      schema,
+      rootValue: resolvers,
+      graphiql: true
+    }));
   }
   replay() {
     this.contracts.forEach((contract) => __async(this, null, function* () {
@@ -118,6 +123,11 @@ var Web3Indexer = class {
         }));
       }));
     }));
+  }
+  start() {
+    this.server.listen(this.port, () => {
+      console.log(`Listening on http://localhost:${this.port}`);
+    });
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

@@ -24,12 +24,13 @@ import express from "express";
 import cors from "cors";
 import { createClient } from "redis";
 import { Contract, JsonRpcProvider } from "ethers";
+import { graphqlHTTP } from "express-graphql";
 var Web3Indexer = class {
   constructor({
     provider,
-    port = 3e3,
     redisConfig = {},
     corsOrigin = /openq\.dev$/,
+    port = 3e3,
     debug = false
   }) {
     this.contracts = [];
@@ -45,7 +46,7 @@ var Web3Indexer = class {
     this.db.connect();
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }));
-    this.server.get("/:eventName", (_req, res) => __async(this, null, function* () {
+    this.server.get("/events/:eventName", (_req, res) => __async(this, null, function* () {
       const cached = yield this.db.hGetAll(_req.params.eventName);
       if (cached) {
         Object.keys(cached).forEach((key) => {
@@ -54,9 +55,6 @@ var Web3Indexer = class {
       }
       res.send(cached || {});
     }));
-    this.server.listen(this.port, () => {
-      console.log(`Listening on http://localhost:${this.port}`);
-    });
   }
   log(...args) {
     if (this.debug) {
@@ -67,6 +65,13 @@ var Web3Indexer = class {
     const contract = new Contract(address, abi, this.provider);
     this.contracts.push(contract);
     callback(contract);
+  }
+  graphql(schema, resolvers) {
+    this.server.use("/graphql", graphqlHTTP({
+      schema,
+      rootValue: resolvers,
+      graphiql: true
+    }));
   }
   replay() {
     this.contracts.forEach((contract) => __async(this, null, function* () {
@@ -85,6 +90,11 @@ var Web3Indexer = class {
         }));
       }));
     }));
+  }
+  start() {
+    this.server.listen(this.port, () => {
+      console.log(`Listening on http://localhost:${this.port}`);
+    });
   }
 };
 export {
