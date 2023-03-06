@@ -1,8 +1,10 @@
 {
   "scripts": {
+    "web3indexer:lint": "pnpm --filter web3indexer lint",
+    "web3indexer:build": "pnpm --filter web3indexer build",
+
     "good-first-web3-issues:lint": "pnpm --filter good-first-web3-issues lint",
     "good-first-web3-issues:build": "pnpm --filter good-first-web3-issues build",
-    "good-first-web3-issues:start": "pnpm --filter good-first-web3-issues start",
 
     "github-insights:lint": "pnpm --filter github-insights lint",
     "github-insights:build": "pnpm --filter github-insights build",
@@ -13,14 +15,14 @@
     "graphql-fetch-all:test": "pnpm --filter graphql-fetch-all test",
 
     "client:lint": "pnpm --filter client lint",
-    "client:dev": "pnpm --filter client dev",
+    "client:start": "pnpm --filter client dev",
 
     "server:lint": "pnpm --filter server lint",
-    "server:build": "pnpm --filter server build",
-    "server:start": "pnpm --filter server start",
+    "server:start:good-first-web3-issues": "pnpm --filter server start:good-first-web3-issues",
+    "server:start:web3indexer": "pnpm --filter server start:web3indexer",
 
-    "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm client:lint && pnpm server:lint",
-    "build": "pnpm graphql-fetch-all:build && pnpm github-insights:build && pnpm good-first-web3-issues:build && pnpm server:build",
+    "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm web3indexer:lint && pnpm client:lint && pnpm server:lint",
+    "build": "pnpm graphql-fetch-all:build && pnpm github-insights:build && pnpm good-first-web3-issues:build && pnpm web3indexer:build",
     "test": "pnpm graphql-fetch-all:test && pnpm github-insights:test",
     
     "all": "pnpm lint && pnpm build && pnpm test"
@@ -40,6 +42,7 @@
     "eslint": "^8.34.0",
     "jest": "^29.4.3",
     "ts-jest": "^29.0.5",
+    "ts-node": "^10.9.1",
     "tsup": "^6.6.3",
     "typescript": "^4.9.5"
   }

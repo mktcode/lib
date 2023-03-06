@@ -1,19 +1,17 @@
 {
   "name": "server",
   "version": "0.0.1",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
   "scripts": {
-    "test": "jest",
-    "build": "tsup src/index.ts --format esm,cjs --dts",
     "lint": "eslint .",
-    "start": "node dist/index.js"
+    "start:good-first-web3-issues": "ts-node src/good-first-web3-issues.ts",
+    "start:web3indexer": "ts-node src/web3indexer.ts"
   },
   "keywords": [],
   "author": "mktcode",
   "license": "ISC",
   "dependencies": {
-    "@mktcodelib/good-first-web3-issues": "workspace:^0.5.4"
+    "@mktcodelib/good-first-web3-issues": "workspace:^0.5.4",
+    "@mktcodelib/web3indexer": "workspace:^0.0.1",
+    "ethers": "^6.0.8"
   }
 }
