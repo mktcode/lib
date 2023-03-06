@@ -29,7 +29,7 @@ importers:
   demo/client:
     specifiers:
       '@heroicons/vue': ^2.0.16
-      '@mktcodelib/github-insights': workspace:^0.0.1
+      '@mktcodelib/github-insights': workspace:^0.1.1
       '@octokit/graphql': ^5.0.5
       '@rushstack/eslint-patch': ^1.1.4
       '@types/node': ^18.11.12
@@ -83,13 +83,13 @@ importers:
 
   demo/server:
     specifiers:
-      '@mktcodelib/good-first-web3-issues': workspace:^0.2.0
+      '@mktcodelib/good-first-web3-issues': workspace:^0.5.4
     dependencies:
       '@mktcodelib/good-first-web3-issues': link:../../packages/good-first-web3-issues
 
   packages/github-insights:
     specifiers:
-      '@mktcodelib/graphql-fetch-all': workspace:^0.0.1
+      '@mktcodelib/graphql-fetch-all': workspace:^0.1.2
       '@octokit/graphql': ^5.0.5
       '@types/lodash': ^4.14.191
       graphql: ^16.6.0

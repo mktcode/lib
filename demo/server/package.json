@@ -14,6 +14,6 @@
   "author": "mktcode",
   "license": "ISC",
   "dependencies": {
-    "@mktcodelib/good-first-web3-issues": "workspace:^0.2.0"
+    "@mktcodelib/good-first-web3-issues": "workspace:^0.5.4"
   }
 }
