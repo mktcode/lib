@@ -35,6 +35,18 @@ indexer.addContract(ADDRESS, EVENTS_ABI, (contract) => {
   });
 });
 
+indexer.addEndpoint('/events/transfers', async (_req, res) => {
+  const cached = await indexer.db.hGetAll('Transfer');
+
+  if (cached) {
+    Object.keys(cached).forEach((key) => {
+      cached[key] = JSON.parse(cached[key]!);
+    });
+  }
+
+  res.send(cached || {});
+});
+
 const resolvers = {
   transfers: async () => {
     const cached = await indexer.db.hGetAll("Transfer");
@@ -45,7 +57,7 @@ const resolvers = {
   },
 };
 
-indexer.graphql(schema, resolvers);
+indexer.addGraphql(schema, resolvers);
 
 indexer.replay();
 indexer.start();

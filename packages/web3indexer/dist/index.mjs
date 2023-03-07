@@ -29,7 +29,7 @@ var Web3Indexer = class {
   constructor({
     provider,
     redisConfig = {},
-    corsOrigin = /openq\.dev$/,
+    corsOrigin = /localhost$/,
     port = 3e3,
     debug = false
   }) {
@@ -46,15 +46,6 @@ var Web3Indexer = class {
     this.db.connect();
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }));
-    this.server.get("/events/:eventName", (_req, res) => __async(this, null, function* () {
-      const cached = yield this.db.hGetAll(_req.params.eventName);
-      if (cached) {
-        Object.keys(cached).forEach((key) => {
-          cached[key] = JSON.parse(cached[key]);
-        });
-      }
-      res.send(cached || {});
-    }));
   }
   log(...args) {
     if (this.debug) {
@@ -66,7 +57,10 @@ var Web3Indexer = class {
     this.contracts.push(contract);
     callback(contract);
   }
-  graphql(schema, resolvers) {
+  addEndpoint(path, callback) {
+    this.server.get(path, callback);
+  }
+  addGraphql(schema, resolvers) {
     this.server.use("/graphql", graphqlHTTP({
       schema,
       rootValue: resolvers,

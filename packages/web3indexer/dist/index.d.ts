@@ -1,3 +1,4 @@
+import express from 'express';
 import { CorsOptions } from 'cors';
 import { createClient } from 'redis';
 import { InterfaceAbi, Contract, JsonRpcProvider } from 'ethers';
@@ -20,7 +21,8 @@ declare class Web3Indexer {
     constructor({ provider, redisConfig, corsOrigin, port, debug, }: Options);
     log(...args: any[]): void;
     addContract(address: string, abi: InterfaceAbi, callback: (contract: Contract) => void): void;
-    graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
+    addEndpoint(path: string, callback: (req: express.Request, res: express.Response) => void): void;
+    addGraphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
     replay(): void;
     start(): void;
 }
