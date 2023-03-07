@@ -28,9 +28,7 @@ Web3 Indexer simply gives you acces to a redis store and an express server, and 
 
 ## Availability/Replication
 
-The clear advantage of decentralization is of course the almost guaranteed availability, even though as far as I am concerned the traffic still goes through a single domain. Is that a problem? I don't know. Having multiple, independent entities do the work and cross-check each other is kinda cool. The thing is, if you just do it yourself, for your business case, you don't need to check anything other than your code. And you already know how the scale things and ensure availability if you really want to, right?
-
-Here are some inspirations:
+The clear advantage of decentralization is of course the almost guaranteed availability. Having multiple, independent entities do the work and cross-check each other is kinda cool. For blockchain transactions, of course, but for caching and aggregating the data and serving it to client applications too? The thing is, if you just do it yourself, for your specific business case, you don't need to check anything other than your code. And you might already know how to scale things and ensure availability.
 
 ### Redis
 
