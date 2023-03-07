@@ -14,6 +14,10 @@ A collection of functions to aggregate and evaluate data from the GitHub GraphQL
 
 An express server, collecting, caching and serving issues, labled "good first issue", based on a whitelist of web3 organizations on GitHub.
 
+### [Web3 Indexer](/packages/web3indexer/)
+
+A lightweight and flexible indexer for EVM smart contracts, connecting a couple of popular libraries to provide a simple self-hosted indexing solution.
+
 ## Development
 
 ```bash

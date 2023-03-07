@@ -1,8 +1,6 @@
 # Web3 Indexer
 
-A lightweight and flexible indexer for EVM smart contracts.
-
-Web3 Indexer connects a couple of popular libraries to provide a simple self-hosted indexing solution.
+A lightweight and flexible indexer for EVM smart contracts, connecting a couple of popular libraries to provide a simple self-hosted indexing solution.
 
 **Ethers** is used to listen to contract events.
 **Redis** is used to store data.
