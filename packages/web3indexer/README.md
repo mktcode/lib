@@ -26,13 +26,13 @@ const ABI = [
   "event Transfer(address indexed from, address indexed to, uint256 value)"
 ];
 
-indexer.addContract(CONTRACT_ADDRESS, ABI, (contract) => {
+indexer.contract(CONTRACT_ADDRESS, ABI, (contract) => {
   contract.on("Transfer", async (from, to, tokenId, event) => {
     indexer.db.hSet("Transfer", event.transactionHash, JSON.stringify({ from, to, tokenId: tokenId.toString() }));
   });
 });
 
-indexer.addEndpoint('/events/transfers', async (_req, res) => {
+indexer.server.get('/events/transfers', async (_req, res) => {
   const transfers = await indexer.db.hGetAll('Transfer');
 
   if (transfers) {
@@ -58,16 +58,18 @@ GET /events/transfers
 
 ### Redis
 
-Inside your contract listeners you can access the Redis client via `indexer.db` to store whatever data in whatever format you like.
+Inside your contract listeners you can access the Redis client via `indexer.db` to read and store whatever data in whatever format you like.
 
 ```javascript
-indexer.db.hSet("Transfer", event.transactionHash, JSON.stringify({ from, to, tokenId: tokenId.toString() }));
+const balance = Number(await indexer.db.hGet("Balance", to));
+
+indexer.db.hSet("Balance", to, (balance + amount).toString());
 ```
 
 Then you tell express how to serve the data by adding endpoints.
 
 ```javascript
-indexer.addEndpoint('/balances', async (_req, res) => {
+indexer.server.get('/balances', async (_req, res) => {
   const balances = await indexer.db.hGetAll('balances');
 
   res.send(balances || {});
@@ -76,7 +78,7 @@ indexer.addEndpoint('/balances', async (_req, res) => {
 
 ```bash
 $ curl http://localhost:3000/balances
-[{"address":"0x000000","balance":"10000"}]
+[{"0x123":"100000","0xAbc":"200000"}]
 ```
 
 ### GraphQL
@@ -113,16 +115,12 @@ export const resolvers = {
 // indexer.js
 import { Web3Indexer } from '@mktcodelib/web3indexer'
 import { resolvers } from './resolvers'
-import { readFileSync } from 'fs'
-
-const schema = readFileSync('./schema.graphql', 'utf8')
+import schema from './schema.graphql'
 
 const indexer = new Web3Indexer({ provider: "https://..." });
 
-indexer.addContract(/* ... */);
-
+indexer.contract(/* ... */);
 indexer.graphql(schema, resolvers);
-
 indexer.start();
 ```
 
