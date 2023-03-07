@@ -1,84 +1,21 @@
-# Motivation
+# Web3 Indexer
 
-When The Graph was released I understood right away what a huge pain it eases and started using it in my projects. Setting up a Subgraph involves a few steps but it is surely worth it, because you get a GraphQL interface for your smart contracts. Yes, I definitely want that.
+## Motivation
 
-However, I am personally unsure about the value of all the decentralization. The truth still lives on-chain and it is really just a convenience to have it nicely packed. A decentralized infrastructure, with query fees and staking and tokenomics and all that, seems a bit bloated to me, at least in some cases and early stages of a project. What I want is an npm package, not a token.
+When The Graph was released I understood what a huge pain it eases and started using it in my projects. You often don't want to read data from smart contracts directly, especially in more complex pojects. Frontend developers are used to the REST and GraphQL APIs but maybe not smart contract ABIs. Indexing event data and making it available in the format that is actually needed by client applications, is absolutely desireable in most cases.
 
-## Web3 Indexer
+However, in reality I find myself postponing the Subgraph setup as long as possible. I try to keep my projects small and simple and my contracts client friendly where possible. The last time I implemented a Subgraph is actually quite a while ago. Probably it's a lot easier today but I remember it being a bit of a hassle and during development it started to get a bit annoying to update and redeploy it all the time. And the decentralized network requires the use of a token, to pay indexers. Why do I need that? I mean, why even the whole "decentralization"?
 
-So I made one.
+The ultimate truth still lives on-chain and it is really just a convenience to have it nicely packed. An infrastructure with game theoretical tokenomics, query fees and staking and all that, seems a bit bloated to me, at least in some cases and definitely in the early stages of a project. High availability and redundancy is not a concern for me at this point, and when it becomes one, there are other ways to achive it. The Graph may not always be the best or most suitable solution. I assume there's at least still room for experimentation.
+
+What I want is not a token but more like... an npm package.
 
 ```bash
 npm i @mktcodelib/web3indexer
 ```
 
-The purpose of an indexer is first and foremost to cache data and make it available, without the need to connect to the blockchain itself.
+I aimed for the most straightforward and lightweight solution, by mostly just connecting a few puzzle-pieces. **Ethers** is used to listen for contract events. **Redis** stores the data. **Express** serves it. **GraphQL** is supported but optional. **You** implement event listeners and API endpoints and run it.
 
-With the minimum configuration the indexer will listen to all contract events, store them in the Redis database and expose them via an express server.
+If you are familiar with all of those, especially Redis, you'll probably have your own indexer up and running within a few minutes.
 
-```javascript
-import { Web3Indexer } from '@mktcodelib/web3indexer'
-import ABI from './abi.json'
-
-const indexer = new Web3Indexer({ provider: "https://..." });
-indexer.addContract("0x123...", ABI);
-indexer.start();
-```
-
-[screenshot of curl/browser]
-
-If you want more control, you can define what events to listen to and how to store the data.
-
-```javascript
-indexer.addContract("0x123...", ABI, (contract) => {
-  contract.on("Transfer", async (from, to, tokenId, event) => {
-    indexer.db.hSet("Transfer", event.transactionHash, JSON.stringify({ from, to, tokenId: tokenId.toString() }));
-  });
-});
-```
-
-The express server will still expose the data and let you traverse through an object structure via the URL path.
-
-[screenshot of curl]
-
-And of course, you can define a GraphQL schema and resolvers, using the Redis database as their data source.
-
-```javascript
-import { Web3Indexer } from '@mktcodelib/web3indexer'
-import ABI from './abi.json'
-import typeDefs from './schema.graphql'
-import resolvers from './resolvers.js'
-
-const indexer = new Web3Indexer({ provider: "https://..." });
-indexer.addContract("0x123...", ABI);
-indexer.graphql(typeDefs, resolvers);
-indexer.start();
-```
-
-```javascript
-// schema.graphql
-type Transfer {
-  from: String
-  to: String
-  tokenId: String
-}
-
-type Query {
-  transfers: [Transfer!]
-}
-```
-
-```javascript
-// resolvers.js
-export default {
-  transfers: async () => {
-    const cached = await indexer.db.hGetAll("Transfer");
-    
-    if (!cached) return [];
-
-    return Object.keys(cached).map((key) => JSON.parse(cached[key]!));
-  },
-};
-```
-
-[screenshot of GraphQL playground]
+Check out [this demo implementation](/demo/server/src/web3indexer/index.ts).

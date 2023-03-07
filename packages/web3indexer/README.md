@@ -1,8 +1,13 @@
 # Web3 Indexer
 
-A lightweight and easy to set up indexer for EVM smart contracts.
+A lightweight and flexible indexer for EVM smart contracts.
 
-Read more about my motivation [here](MOTIVATION.md).
+Web3 Indexer connects a couple of popular libraries to provide a simple self-hosted indexing solution.
+
+**Ethers** is used to listen to contract events.
+**Redis** is used to store data.
+**Express** serves the data.
+**GraphQL** is supported but optional.
 
 ## Usage
 
@@ -27,14 +32,28 @@ indexer.addContract(CONTRACT_ADDRESS, ABI, (contract) => {
   });
 });
 
+indexer.addEndpoint('/events/transfers', async (_req, res) => {
+  const transfers = await indexer.db.hGetAll('Transfer');
+
+  if (transfers) {
+    Object.keys(transfers).forEach((key) => {
+      transfers[key] = JSON.parse(transfers[key]);
+    });
+  }
+
+  res.send(transfers || {});
+});
+
 indexer.start();
 ```
 
 ```bash
 $ node indexer.js
 
-Indexing...
-Event data: http://localhost:3000/events
+Listening on http://localhost:3000
+
+Routes:
+GET /events/transfers
 ```
 
 ### Redis
@@ -45,21 +64,24 @@ Inside your contract listeners you can access the Redis client via `indexer.db` 
 indexer.db.hSet("Transfer", event.transactionHash, JSON.stringify({ from, to, tokenId: tokenId.toString() }));
 ```
 
-The express server exposes the data and let's you traverse through an object structure via the URL path.
+Then you tell express how to serve the data by adding endpoints.
 
-```bash
-$ curl http://localhost:3000/events/mycontract.eth/Transfer/<transactionHash>
-{"from":"0x000000","to":"0x000001","tokenId":"1000"}
+```javascript
+indexer.addEndpoint('/balances', async (_req, res) => {
+  const balances = await indexer.db.hGetAll('balances');
+
+  res.send(balances || {});
+});
 ```
 
 ```bash
-$ curl http://localhost:3000/events/<contractAddress>/Transfer/<transactionHash>/tokenId
-1000
+$ curl http://localhost:3000/balances
+[{"address":"0x000000","balance":"10000"}]
 ```
 
 ### GraphQL
 
-You can also define a GraphQL schema and resolvers and use the Redis data as a data source.
+You can also define a GraphQL schema and resolvers.
 
 ```javascript
 // schema.graphql
@@ -104,25 +126,11 @@ indexer.graphql(schema, resolvers);
 indexer.start();
 ```
 
-```bash
-$ curl http://localhost:3000/graphql?query={transfers{from,to,tokenId}}
-{"data":{"transfers":[{"from":"0x000000","to":"0x000001","tokenId":"1000"}]}}
-```
-
-```bash
-$ curl http://localhost:3000/graphql?query={transfer(transactionHash:"0x..."){from,to,tokenId}}
-{"data":{"transfer":{"from":"0x000000","to":"0x000001","tokenId":"1000"}}}
-```
-
 ### Replay
 
-To sync all events from the beginning of the chain, use the `replay` function.
+To sync past events, use the `replay` function.
 
 ```javascript
-const indexer = new Web3Indexer(/* ... */);
-
-// ...
-
 indexer.start();
 indexer.replay();
 ```
