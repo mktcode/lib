@@ -19,3 +19,9 @@ I aimed for the most straightforward and lightweight solution, by mostly just co
 If you are familiar with all of those, especially Redis, you'll probably have your own indexer up and running within a few minutes.
 
 Check out [this demo implementation](/demo/server/src/web3indexer/index.ts).
+
+## Availability/Replication
+
+### Redis
+
+### Gun
