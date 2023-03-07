@@ -14,11 +14,11 @@ type Options = {
 }
 
 export class Web3Indexer {
+  public db: ReturnType<typeof createClient>;
+  public server: ReturnType<typeof express>;
+
   private port: number;
   private debug: boolean;
-
-  public db: ReturnType<typeof createClient>;
-  private server: ReturnType<typeof express>;
 
   private contracts: Contract[] = [];
   private provider: JsonRpcProvider
@@ -53,7 +53,7 @@ export class Web3Indexer {
     }
   }
 
-  addContract(
+  contract(
     address: string,
     abi: InterfaceAbi,
     callback: (contract: Contract) => void
@@ -63,11 +63,7 @@ export class Web3Indexer {
     callback(contract)
   }
 
-  addEndpoint(path: string, callback: (req: express.Request, res: express.Response) => void) {
-    this.server.get(path, callback)
-  }
-
-  addGraphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>) {
+  graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>) {
     this.server.use('/graphql', graphqlHTTP({
       schema,
       rootValue: resolvers,

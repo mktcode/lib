@@ -12,17 +12,16 @@ type Options = {
     debug?: boolean;
 };
 declare class Web3Indexer {
+    db: ReturnType<typeof createClient>;
+    server: ReturnType<typeof express>;
     private port;
     private debug;
-    db: ReturnType<typeof createClient>;
-    private server;
     private contracts;
     private provider;
     constructor({ provider, redisConfig, corsOrigin, port, debug, }: Options);
     log(...args: any[]): void;
-    addContract(address: string, abi: InterfaceAbi, callback: (contract: Contract) => void): void;
-    addEndpoint(path: string, callback: (req: express.Request, res: express.Response) => void): void;
-    addGraphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
+    contract(address: string, abi: InterfaceAbi, callback: (contract: Contract) => void): void;
+    graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
     replay(): void;
     start(): void;
 }

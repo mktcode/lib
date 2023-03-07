@@ -85,15 +85,12 @@ var Web3Indexer = class {
       console.log(...args);
     }
   }
-  addContract(address, abi, callback) {
+  contract(address, abi, callback) {
     const contract = new import_ethers.Contract(address, abi, this.provider);
     this.contracts.push(contract);
     callback(contract);
   }
-  addEndpoint(path, callback) {
-    this.server.get(path, callback);
-  }
-  addGraphql(schema, resolvers) {
+  graphql(schema, resolvers) {
     this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
       schema,
       rootValue: resolvers,
