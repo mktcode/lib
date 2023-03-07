@@ -1,4 +1,4 @@
-import express from 'express';
+import { Application } from 'express';
 import { CorsOptions } from 'cors';
 import { createClient } from 'redis';
 import { InterfaceAbi, Contract, JsonRpcProvider } from 'ethers';
@@ -13,7 +13,7 @@ type Options = {
 };
 declare class Web3Indexer {
     db: ReturnType<typeof createClient>;
-    server: ReturnType<typeof express>;
+    server: Application;
     private port;
     private debug;
     private contracts;
