@@ -121,6 +121,12 @@ var Web3Indexer = class {
   start() {
     this.server.listen(this.port, () => {
       console.log(`Listening on http://localhost:${this.port}`);
+      console.log("\nRoutes:");
+      this.server._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+          console.log(`GET ${middleware.route.path}`);
+        }
+      });
     });
   }
 };
