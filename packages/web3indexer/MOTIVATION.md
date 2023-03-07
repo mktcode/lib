@@ -16,13 +16,13 @@ npm i @mktcodelib/web3indexer
 
 I aimed for the most straightforward and lightweight solution, by mostly just connecting a few puzzle-pieces. **Ethers** is used to listen for contract events. **Redis** stores the data. **Express** serves it. **GraphQL** is supported but optional. **You** implement event listeners and API endpoints and run it.
 
-If you are familiar with all of those, especially Redis, you'll probably have your own indexer up and running within a few minutes.
+If you are familiar with all of these, especially Redis, since it is your storage interface, you'll probably have your own indexer up and running within a few minutes, indexing a first couple of events.
 
 Check out [this demo implementation](/demo/server/src/web3indexer/index.ts).
 
 ## Everything in one place
 
-The typical dApp has a few contracts and some sort of client UI with it's own state and often a separate database and API for "off-chain" data **plus** one or more Subgraphs. Another downside of the decentralized nature of The Graph's protocol, is that you can't store any data that is not derived from the blockchain or other decentralized storage. Decentralization requires consensus which requires determinism, which at the end of the means: Nope, no API calls. Just as in the smart contracts you are trying to integrate more seemlesly into your application architecture.
+The typical dApp has a few contracts and some sort of client UI with it's own state and often a separate database and API for "off-chain" data **plus** one or more Subgraphs. Another downside of the decentralized nature of The Graph's protocol, is that you can't store any data that is not derived from the blockchain or other decentralized storage. Decentralization requires consensus which requires determinism, which at the end of the day means: Nope, no API calls. Just as in the smart contracts you are trying to integrate more seemlesly into your application architecture.
 
 Web3 Indexer simply gives you acces to a redis store and an express server, and ethers is installed as well, so to say. You can define POST endpoints, authenticated or not, make API calls and store and serve whatever data you want, however you want, be it good old REST or shiny GraphQL or whatever you can make an express server do. Or go and implement the whole thing in.. Go or Rust. The point is, you can have your client's "off-chain" API and your contract data in one place, setup can be super easy, and you don't need to buy a token.
 
