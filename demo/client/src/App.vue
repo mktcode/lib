@@ -34,12 +34,11 @@ onMounted(async () => {
 
   try {
     if (repoName.value) {
-      repoScan.value = await githubInsights.scanRepository(
-        userName.value,
-        repoName.value
-      );
+      repoScan.value = true;
     } else {
       userScan.value = await githubInsights.scanUser(userName.value);
+      const userScans = await githubInsights.scanUsers([userName.value, 'rickkdev']);
+      console.log(userScans);
     }
   } catch (error) {
     console.error(error);
