@@ -19,4 +19,10 @@ export class GithubInsights {
 
     return evaluateUserScan(userScan);
   }
+
+  async scanUsers(logins: string[]) {
+    const userScans = await Promise.all(logins.map(login => fetchUserScan(this.client, login)));
+
+    return Object.fromEntries(userScans.map(userScan => [userScan.login, evaluateUserScan(userScan)]));
+  }
 }

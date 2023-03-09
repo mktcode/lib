@@ -190,6 +190,12 @@ var GithubInsights = class {
       return evaluateUserScan(userScan);
     });
   }
+  scanUsers(logins) {
+    return __async(this, null, function* () {
+      const userScans = yield Promise.all(logins.map((login) => fetchUserScan(this.client, login)));
+      return Object.fromEntries(userScans.map((userScan) => [userScan.login, evaluateUserScan(userScan)]));
+    });
+  }
 };
 export {
   GithubInsights

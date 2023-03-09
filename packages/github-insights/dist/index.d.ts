@@ -16,6 +16,18 @@ declare class GithubInsights {
         mergedPullRequestCount30d: number;
         mergedPullRequestCount365d: number;
     }>;
+    scanUsers(logins: string[]): Promise<{
+        [k: string]: {
+            forkCount: number;
+            followersForkCount: number;
+            stargazerCount: number;
+            followersStargazerCount: number;
+            followersFollowerCount: number;
+            mergedPullRequestCount: number;
+            mergedPullRequestCount30d: number;
+            mergedPullRequestCount365d: number;
+        };
+    }>;
 }
 
 export { GithubInsights };
