@@ -18,9 +18,13 @@ An express server, collecting, caching and serving issues, labled "good first is
 
 A lightweight and flexible indexer for EVM smart contracts, connecting a couple of popular libraries to provide a simple self-hosted indexing solution.
 
-### Web3 Action (coming soon)
+### Web3 Action (maybe coming soon)
 
 Connecting GitHub Actions and EVMs. 
+
+### Web3 Transaction Builder (maybe coming soon)
+
+UI components to build and sign transactions for EVMs.
 
 ## Development
 
