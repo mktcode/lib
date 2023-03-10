@@ -68,9 +68,7 @@ function getVarNamesFromArguments(argumentNodes, variableNames) {
 function extractPaginatorsFromSelectionSet(selectionSet, variableNames, path = []) {
   const paginators = [];
   for (const selection of selectionSet.selections) {
-    if (selection.kind !== Kind.FIELD)
-      continue;
-    if (selection.arguments) {
+    if (selection.kind === Kind.FIELD && selection.arguments) {
       const [limitVarName, cursorVarName] = getVarNamesFromArguments(selection.arguments, variableNames);
       if (limitVarName && cursorVarName) {
         paginators.push({
@@ -79,9 +77,12 @@ function extractPaginatorsFromSelectionSet(selectionSet, variableNames, path = [
           cursorVarName
         });
       }
+      if (selection.selectionSet) {
+        paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+      }
     }
-    if (selection.selectionSet) {
-      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+    if (selection.kind === Kind.INLINE_FRAGMENT && selection.selectionSet) {
+      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, path));
     }
   }
   return paginators;

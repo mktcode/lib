@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/graphql-fetch-all",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Utility to fetch all nodes in a paginated graphql query.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

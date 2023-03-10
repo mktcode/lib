@@ -92,9 +92,7 @@ function getVarNamesFromArguments(argumentNodes, variableNames) {
 function extractPaginatorsFromSelectionSet(selectionSet, variableNames, path = []) {
   const paginators = [];
   for (const selection of selectionSet.selections) {
-    if (selection.kind !== import_graphql.Kind.FIELD)
-      continue;
-    if (selection.arguments) {
+    if (selection.kind === import_graphql.Kind.FIELD && selection.arguments) {
       const [limitVarName, cursorVarName] = getVarNamesFromArguments(selection.arguments, variableNames);
       if (limitVarName && cursorVarName) {
         paginators.push({
@@ -103,9 +101,12 @@ function extractPaginatorsFromSelectionSet(selectionSet, variableNames, path = [
           cursorVarName
         });
       }
+      if (selection.selectionSet) {
+        paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+      }
     }
-    if (selection.selectionSet) {
-      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+    if (selection.kind === import_graphql.Kind.INLINE_FRAGMENT && selection.selectionSet) {
+      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, path));
     }
   }
   return paginators;

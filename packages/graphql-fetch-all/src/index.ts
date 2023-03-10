@@ -27,9 +27,7 @@ export function extractPaginatorsFromSelectionSet(selectionSet: SelectionSetNode
   const paginators: Paginator[] = [];
 
   for (const selection of selectionSet.selections) {
-    if (selection.kind !== Kind.FIELD) continue;
-
-    if (selection.arguments) {
+    if (selection.kind === Kind.FIELD && selection.arguments) {
       const [limitVarName, cursorVarName] = getVarNamesFromArguments(selection.arguments, variableNames);
 
       if (limitVarName && cursorVarName) {
@@ -39,10 +37,14 @@ export function extractPaginatorsFromSelectionSet(selectionSet: SelectionSetNode
           cursorVarName,
         });
       }
+
+      if (selection.selectionSet) {
+        paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+      }
     }
 
-    if (selection.selectionSet) {
-      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, [...path, selection.name.value]));
+    if (selection.kind === Kind.INLINE_FRAGMENT && selection.selectionSet) {
+      paginators.push(...extractPaginatorsFromSelectionSet(selection.selectionSet, variableNames, path));
     }
   }
   
