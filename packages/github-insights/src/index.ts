@@ -27,7 +27,7 @@ export class GithubInsights {
     this.client = new octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
   }
 
-  async fetchUser(login: string): Promise<User> {
+  async scanUser(login: string) {
     const { user } = await graphqlFetchAll<{ user: User }>(
       this.client.graphql,
       USER_QUERY,
@@ -38,20 +38,16 @@ export class GithubInsights {
         firstPrs: 100,
       },
     );
-  
-    return user;
-  }
 
-  async scanUser(login: string) {
-    const userScan = await this.fetchUser(login);
-
-    return evaluateUser(userScan);
+    return evaluateUser(user);
   }
 
   async scanUsers(logins: string[]) {
-    const userScans = await Promise.all(logins.map(login => this.fetchUser(login)));
-
-    return Object.fromEntries(userScans.map(userScan => [userScan.login, evaluateUser(userScan)]));
+    return Object.fromEntries(
+      await Promise.all(
+        logins.map(async login => [login, await this.scanUser(login)]),
+      ),
+    );
   }
 
   async scanRepoCommits(owner: string, name: string, since: Date, until: Date) {
