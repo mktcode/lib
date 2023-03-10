@@ -707,7 +707,7 @@ var GoodFirstWeb3Issues = class {
       process.stdout.write("\x1B[1A\x1B[0G");
       this.log(`\rRate limit: ${rateLimit.used}/${this.rateLimit}`);
       if (rateLimit.used >= this.rateLimit) {
-        waitTime = 1e3 * 10;
+        waitTime = new Date(rateLimit.resetAt).getTime() - Date.now() + 1e3 * 60;
         this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until rate limit resets...
 `);
       }
