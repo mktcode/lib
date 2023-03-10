@@ -20,46 +20,55 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
-import { Octokit } from "octokit";
+import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
+import { Octokit } from "@octokit/core";
+import { paginateRest } from "@octokit/plugin-paginate-rest";
 
 // src/evaluators/repoCommits.ts
-function evaluateRepoCommits(commits) {
+function evaluateRepoCommits(repoCommits) {
+  const { defaultBranchRef: { target: { history: { nodes: commits } } } } = repoCommits;
+  const commitCount = commits.length;
   return {
-    commitCount: 0
+    commitCount
   };
 }
 
 // src/evaluators/user.ts
-function evaluateUserScan(userScan) {
-  const forkCount = userScan.repositories.nodes.reduce(
+function evaluateUser(user) {
+  const {
+    followers: { nodes: followers },
+    repositories: { nodes: repositories },
+    pullRequests: { nodes: pullRequests }
+  } = user;
+  const forkCount = repositories.reduce(
     (acc, repo) => acc + repo.forkCount,
     0
   );
-  const followersForkCount = userScan.followers.nodes.reduce(
+  const stargazerCount = repositories.reduce(
+    (acc, repo) => acc + repo.stargazerCount,
+    0
+  );
+  const followersForkCount = followers.reduce(
     (acc, follower) => acc + follower.repositories.nodes.reduce(
       (acc2, repo) => acc2 + repo.forkCount,
       0
     ),
     0
   );
-  const stargazerCount = userScan.repositories.nodes.reduce(
-    (acc, repo) => acc + repo.stargazerCount,
-    0
-  );
-  const followersStargazerCount = userScan.followers.nodes.reduce(
+  const followersStargazerCount = followers.reduce(
     (acc, follower) => acc + follower.repositories.nodes.reduce(
       (acc2, repo) => acc2 + repo.stargazerCount,
       0
     ),
     0
   );
-  const followersFollowerCount = userScan.followers.nodes.reduce(
+  const followersFollowerCount = followers.reduce(
     (acc, follower) => acc + follower.followers.totalCount,
     0
   );
-  const eligablePullRequests = userScan.pullRequests.nodes.filter((pr) => pr.merged && !!pr.repository).filter((pr) => {
+  const eligablePullRequests = pullRequests.filter((pr) => pr.merged && !!pr.repository).filter((pr) => {
     var _a;
-    return !!pr.repository && ((_a = pr.repository) == null ? void 0 : _a.owner.login) !== userScan.login;
+    return !!pr.repository && ((_a = pr.repository) == null ? void 0 : _a.owner.login) !== user.login;
   });
   const mergedPullRequestCount = eligablePullRequests.reduce(
     (acc, pr) => pr.merged ? acc + 1 : acc,
@@ -97,23 +106,9 @@ function evaluateUserScan(userScan) {
   };
 }
 
-// src/fetchers/repoCommits.ts
-function fetchRepoCommits(client, owner, repo, start, end) {
-  return __async(this, null, function* () {
-    const commits = yield client.paginate("GET /repos/{org}/{repo}/commits", {
-      owner,
-      repo
-    });
-    return commits;
-  });
-}
-
-// src/fetchers/user.ts
-import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
-
 // src/queries.ts
 import gql from "graphql-tag";
-var GITHUB_USER_SCAN_QUERY = gql`query (
+var USER_QUERY = gql`query (
   $login: String!,
   $firstFollowers: Int!,
   $afterFollower: String,
@@ -174,45 +169,91 @@ var GITHUB_USER_SCAN_QUERY = gql`query (
     }
   }
 }`;
-
-// src/fetchers/user.ts
-function fetchUserScan(client, login) {
-  return __async(this, null, function* () {
-    const { user } = yield graphqlFetchAll(
-      client.graphql,
-      GITHUB_USER_SCAN_QUERY,
-      {
-        login,
-        firstFollowers: 100,
-        firstRepos: 100,
-        firstPrs: 100
+var REPO_COMMITS_QUERY = gql`query (
+  $owner: String!,
+  $name: String!,
+  $since: GitTimestamp!,
+  $until: GitTimestamp!,
+  $first: Int!,
+  $after: String
+) {
+  repository(owner: $owner, name: $name) {
+    defaultBranchRef {
+      name
+      target {
+        ... on Commit {
+          history(since: $since, until: $until, first: $first, after: $after) {
+            totalCount
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              message
+              additions
+              deletions
+              changedFilesIfAvailable
+              committedDate
+              author {
+                user {
+                  login
+                }
+              }
+            }
+          }
+        }
       }
-    );
-    return user;
-  });
-}
+    }
+  }
+}`;
 
 // src/index.ts
 var GithubInsights = class {
   constructor(options) {
-    this.client = new Octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
+    const octokit = Octokit.plugin(paginateRest);
+    this.client = new octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
+  }
+  fetchUser(login) {
+    return __async(this, null, function* () {
+      const { user } = yield graphqlFetchAll(
+        this.client.graphql,
+        USER_QUERY,
+        {
+          login,
+          firstFollowers: 100,
+          firstRepos: 100,
+          firstPrs: 100
+        }
+      );
+      return user;
+    });
   }
   scanUser(login) {
     return __async(this, null, function* () {
-      const userScan = yield fetchUserScan(this.client, login);
-      return evaluateUserScan(userScan);
+      const userScan = yield this.fetchUser(login);
+      return evaluateUser(userScan);
     });
   }
   scanUsers(logins) {
     return __async(this, null, function* () {
-      const userScans = yield Promise.all(logins.map((login) => fetchUserScan(this.client, login)));
-      return Object.fromEntries(userScans.map((userScan) => [userScan.login, evaluateUserScan(userScan)]));
+      const userScans = yield Promise.all(logins.map((login) => this.fetchUser(login)));
+      return Object.fromEntries(userScans.map((userScan) => [userScan.login, evaluateUser(userScan)]));
     });
   }
-  scanRepoCommits(owner, repo, start, end) {
+  scanRepoCommits(owner, name, since, until) {
     return __async(this, null, function* () {
-      const commits = yield fetchRepoCommits(this.client, owner, repo, start, end);
-      return evaluateRepoCommits(commits);
+      const { repository } = yield graphqlFetchAll(
+        this.client.graphql,
+        REPO_COMMITS_QUERY,
+        {
+          owner,
+          name,
+          since: since.toISOString(),
+          until: until.toISOString(),
+          first: 100
+        }
+      );
+      return evaluateRepoCommits(repository);
     });
   }
 };

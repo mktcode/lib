@@ -1,31 +1,72 @@
-import { Octokit } from "octokit";
-import { evaluateRepoCommits } from "./evaluators/repoCommits";
-import { evaluateUserScan } from "./evaluators/user";
-import { fetchRepoCommits } from "./fetchers/repoCommits";
-import { fetchUserScan } from "./fetchers/user";
+import { graphqlFetchAll } from "@mktcodelib/graphql-fetch-all";
+import { Octokit } from "@octokit/core";
+import { PaginateInterface, paginateRest } from "@octokit/plugin-paginate-rest";
+import { evaluateRepoCommits, RepoCommits } from "./evaluators/repoCommits";
+import { evaluateUser, User } from "./evaluators/user";
+import { REPO_COMMITS_QUERY, USER_QUERY } from "./queries";
+
+export type Commit = {
+  sha: string;
+  node_id: string;
+  commit: {
+    additions: number;
+    deletions: number;
+    total: number;
+  };
+}
+
+export type RepoCommitsResult = {
+  commitCount: number;
+}
 
 export class GithubInsights {
-  client: Octokit;
+  client: Octokit & { paginate: PaginateInterface };
 
   constructor(options: { viewerToken: string, sourceUrl?: string }) {
-    this.client = new Octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
+    const octokit = Octokit.plugin(paginateRest);
+    this.client = new octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
+  }
+
+  async fetchUser(login: string): Promise<User> {
+    const { user } = await graphqlFetchAll<{ user: User }>(
+      this.client.graphql,
+      USER_QUERY,
+      {
+        login,
+        firstFollowers: 100,
+        firstRepos: 100,
+        firstPrs: 100,
+      },
+    );
+  
+    return user;
   }
 
   async scanUser(login: string) {
-    const userScan = await fetchUserScan(this.client, login);
+    const userScan = await this.fetchUser(login);
 
-    return evaluateUserScan(userScan);
+    return evaluateUser(userScan);
   }
 
   async scanUsers(logins: string[]) {
-    const userScans = await Promise.all(logins.map(login => fetchUserScan(this.client, login)));
+    const userScans = await Promise.all(logins.map(login => this.fetchUser(login)));
 
-    return Object.fromEntries(userScans.map(userScan => [userScan.login, evaluateUserScan(userScan)]));
+    return Object.fromEntries(userScans.map(userScan => [userScan.login, evaluateUser(userScan)]));
   }
 
-  async scanRepoCommits(owner: string, repo: string, start: Date, end: Date) {
-    const commits = await fetchRepoCommits(this.client, owner, repo, start, end);
+  async scanRepoCommits(owner: string, name: string, since: Date, until: Date) {
+    const { repository } = await graphqlFetchAll<{ repository: RepoCommits }>(
+      this.client.graphql,
+      REPO_COMMITS_QUERY,
+      {
+        owner,
+        name,
+        since: since.toISOString(),
+        until: until.toISOString(),
+        first: 100,
+      },
+    );
 
-    return evaluateRepoCommits(commits);
+    return evaluateRepoCommits(repository);
   }
 }

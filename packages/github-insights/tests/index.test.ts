@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
-import { evaluateUserScan } from '../src/evaluators/user';
+import { evaluateUser } from '../src/evaluators/user';
 import GITHUB_USER_SCAN_MOCK from './mocks/github-user-scan.json';
 
 jest.useFakeTimers();
@@ -25,7 +25,7 @@ describe('main module', () => {
       mergedPullRequestCount,
       mergedPullRequestCount30d,
       mergedPullRequestCount365d,
-    } = evaluateUserScan(GITHUB_USER_SCAN_MOCK.data.user);
+    } = evaluateUser(GITHUB_USER_SCAN_MOCK.data.user);
 
     expect(forkCount).toBe(expectedForkCount);
     expect(followersForkCount).toBe(expectedFollowersForkCount);

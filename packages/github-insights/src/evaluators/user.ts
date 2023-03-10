@@ -1,4 +1,4 @@
-export type UserScan = {
+export type User = {
   login: string;
   createdAt: string;
   followers: {
@@ -37,12 +37,23 @@ export type UserScan = {
   }
 }
 
-export function evaluateUserScan(userScan: UserScan) {
-  const forkCount = userScan.repositories.nodes.reduce(
+export function evaluateUser(user: User) {
+  const {
+    followers: { nodes: followers },
+    repositories: { nodes: repositories },
+    pullRequests: { nodes: pullRequests },
+  } = user;
+
+  const forkCount = repositories.reduce(
     (acc, repo) => acc + repo.forkCount,
     0
   );
-  const followersForkCount = userScan.followers.nodes.reduce(
+  const stargazerCount = repositories.reduce(
+    (acc, repo) => acc + repo.stargazerCount,
+    0
+  );
+
+  const followersForkCount = followers.reduce(
     (acc, follower) => acc + follower.repositories.nodes.reduce(
       (acc, repo) => acc + repo.forkCount,
       0
@@ -50,11 +61,8 @@ export function evaluateUserScan(userScan: UserScan) {
     0
   );
 
-  const stargazerCount = userScan.repositories.nodes.reduce(
-    (acc, repo) => acc + repo.stargazerCount,
-    0
-  );
-  const followersStargazerCount = userScan.followers.nodes.reduce(
+  
+  const followersStargazerCount = followers.reduce(
     (acc, follower) => acc + follower.repositories.nodes.reduce(
       (acc, repo) => acc + repo.stargazerCount,
       0
@@ -62,14 +70,14 @@ export function evaluateUserScan(userScan: UserScan) {
     0
   );
   
-  const followersFollowerCount = userScan.followers.nodes.reduce(
+  const followersFollowerCount = followers.reduce(
     (acc, follower) => acc + follower.followers.totalCount,
     0
   );
 
-  const eligablePullRequests = userScan.pullRequests.nodes
+  const eligablePullRequests = pullRequests
     .filter(pr => pr.merged && !!pr.repository)
-    .filter(pr => !!pr.repository && pr.repository?.owner.login !== userScan.login);
+    .filter(pr => !!pr.repository && pr.repository?.owner.login !== user.login);
 
   const mergedPullRequestCount = eligablePullRequests.reduce(
     (acc, pr) => pr.merged ? acc + 1 : acc,

@@ -1,7 +1,7 @@
 import { DocumentNode } from "graphql";
 import gql from "graphql-tag";
 
-export const GITHUB_USER_SCAN_QUERY: DocumentNode = gql`query (
+export const USER_QUERY: DocumentNode = gql`query (
   $login: String!,
   $firstFollowers: Int!,
   $afterFollower: String,
@@ -57,6 +57,45 @@ export const GITHUB_USER_SCAN_QUERY: DocumentNode = gql`query (
           }
           stargazerCount
           forkCount
+        }
+      }
+    }
+  }
+}`;
+
+
+export const REPO_COMMITS_QUERY: DocumentNode = gql`query (
+  $owner: String!,
+  $name: String!,
+  $since: GitTimestamp!,
+  $until: GitTimestamp!,
+  $first: Int!,
+  $after: String
+) {
+  repository(owner: $owner, name: $name) {
+    defaultBranchRef {
+      name
+      target {
+        ... on Commit {
+          history(since: $since, until: $until, first: $first, after: $after) {
+            totalCount
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              message
+              additions
+              deletions
+              changedFilesIfAvailable
+              committedDate
+              author {
+                user {
+                  login
+                }
+              }
+            }
+          }
         }
       }
     }
