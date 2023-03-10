@@ -6,11 +6,14 @@ A collection of functions to aggregate and evaluate data from the GitHub GraphQL
 npm i @mktcodelib/github-insights
 ```
 
+## Usage
+
 ```js
 const githubInsights = new GithubInsights({
   viewerToken: "<access token>",
 });
 
+// single user
 const {
   forkCount,
   followersForkCount,
@@ -20,7 +23,28 @@ const {
   mergedPullRequestCount,
   mergedPullRequestCount30d,
   mergedPullRequestCount365d,
-} = await githubInsights.scanUser(username.value);
+} = await githubInsights.scanUser('mktcode');
+
+// multiple users
+const usersStats = await githubInsights.scanUsers(['mktcode', 'rickkdev']);
+
+// repo commit stats
+const until = new Date();
+const since = new Date();
+since.setMonth(since.getMonth() - 1);
+
+const {
+  commitCount,
+  linesChanged,
+  commitsByDay,
+  commitsByDayNormalized: {
+    commitCount: commitCountNormalized,
+    linesChanged: linesChangedNormalized,
+  }
+} = await githubInsights.scanRepoCommits('mktcode', 'lib', since, until);
+
+console.log(linesChangedNormalized);
+// [0.0036611882074566735,0.02267058898765748, ... ]
 ```
 
 # Scores
