@@ -15,10 +15,6 @@ export type Commit = {
   };
 }
 
-export type RepoCommitsResult = {
-  commitCount: number;
-}
-
 export class GithubInsights {
   client: Octokit & { paginate: PaginateInterface };
 

@@ -58,11 +58,33 @@ var import_core = require("@octokit/core");
 var import_plugin_paginate_rest = require("@octokit/plugin-paginate-rest");
 
 // src/evaluators/repoCommits.ts
+function normalizeNumbers(numbers) {
+  const max = Math.max(...numbers);
+  return numbers.map((num) => num / max);
+}
 function evaluateRepoCommits(repoCommits) {
   const { defaultBranchRef: { target: { history: { nodes: commits } } } } = repoCommits;
   const commitCount = commits.length;
+  const linesChanged = commits.reduce((acc, commit) => acc + commit.additions + commit.deletions, 0);
+  const commitsByDay = commits.reduce((acc, commit) => {
+    var _a, _b, _c, _d;
+    const date = new Date(commit.committedDate).toISOString().split("T")[0];
+    const commitCount2 = (_b = (_a = acc[date]) == null ? void 0 : _a.commitCount) != null ? _b : 0;
+    const linesChanged2 = (_d = (_c = acc[date]) == null ? void 0 : _c.linesChanged) != null ? _d : 0;
+    acc[date] = {
+      commitCount: commitCount2 + 1,
+      linesChanged: linesChanged2 + commit.additions + commit.deletions
+    };
+    return acc;
+  }, {});
   return {
-    commitCount
+    commitCount,
+    linesChanged,
+    commitsByDay,
+    commitsByDayNormalized: {
+      commitCount: normalizeNumbers(Object.values(commitsByDay).map(({ commitCount: commitCount2 }) => commitCount2)),
+      linesChanged: normalizeNumbers(Object.values(commitsByDay).map(({ linesChanged: linesChanged2 }) => linesChanged2))
+    }
   };
 }
 
@@ -246,7 +268,7 @@ var GithubInsights = class {
     const octokit = import_core.Octokit.plugin(import_plugin_paginate_rest.paginateRest);
     this.client = new octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
   }
-  fetchUser(login) {
+  scanUser(login) {
     return __async(this, null, function* () {
       const { user } = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
         this.client.graphql,
@@ -258,19 +280,18 @@ var GithubInsights = class {
           firstPrs: 100
         }
       );
-      return user;
-    });
-  }
-  scanUser(login) {
-    return __async(this, null, function* () {
-      const userScan = yield this.fetchUser(login);
-      return evaluateUser(userScan);
+      return evaluateUser(user);
     });
   }
   scanUsers(logins) {
     return __async(this, null, function* () {
-      const userScans = yield Promise.all(logins.map((login) => this.fetchUser(login)));
-      return Object.fromEntries(userScans.map((userScan) => [userScan.login, evaluateUser(userScan)]));
+      return Object.fromEntries(
+        yield Promise.all(
+          logins.map((login) => __async(this, null, function* () {
+            return [login, yield this.scanUser(login)];
+          }))
+        )
+      );
     });
   }
   scanRepoCommits(owner, name, since, until) {
