@@ -1,11 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { GithubInsights } from "@mktcodelib/github-insights";
-import { useKeyframes } from "./composables/useKeyframes";
 import TeamCard from "./components/TeamCard.vue";
 import UserCard from "./components/UserCard.vue";
-
-const { animationKey } = useKeyframes(200);
 
 const githubInsights = new GithubInsights({
   viewerToken: import.meta.env.VITE_GITHUB_TOKEN,
@@ -29,15 +26,27 @@ const loadingData = ref(true);
 const userScan = ref<any>();
 const repoScan = ref<any>();
 
+const now = new Date();
+const oneMonthAgo = new Date();
+oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
 onMounted(async () => {
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   try {
     if (repoName.value) {
-      repoScan.value = true;
+      repoScan.value = await githubInsights.scanRepoCommits(
+        userName.value,
+        repoName.value,
+        oneMonthAgo,
+        now
+      );
     } else {
       userScan.value = await githubInsights.scanUser(userName.value);
-      const userScans = await githubInsights.scanUsers([userName.value, 'rickkdev']);
+      const userScans = await githubInsights.scanUsers([
+        userName.value,
+        "rickkdev",
+      ]);
       console.log(userScans);
     }
   } catch (error) {
@@ -60,16 +69,7 @@ onMounted(async () => {
       <UserCard v-if="userScan" :user-name="userName" :user-scan="userScan" />
     </Transition>
     <Transition>
-      <TeamCard v-if="repoScan && animationKey > 0" :repo-scan="repoScan" />
-    </Transition>
-    <Transition>
-      <TeamCard v-if="repoScan && animationKey > 1" :repo-scan="repoScan" />
-    </Transition>
-    <Transition>
-      <TeamCard v-if="repoScan && animationKey > 2" :repo-scan="repoScan" />
-    </Transition>
-    <Transition>
-      <TeamCard v-if="repoScan && animationKey > 3" :repo-scan="repoScan" />
+      <TeamCard v-if="repoScan" :repo-scan="repoScan" />
     </Transition>
   </main>
 </template>

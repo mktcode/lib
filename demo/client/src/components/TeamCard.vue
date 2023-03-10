@@ -2,6 +2,15 @@
 import TeamCardScores from "./TeamCardScores.vue";
 import TeamCardMembers from "./TeamCardMembers.vue";
 import TeamCardActivityChart from "./TeamCardActivityChart.vue";
+
+defineProps<{
+  repoScan: any;
+}>();
+
+const numberFormatter = new Intl.NumberFormat("en-US", {
+  style: "decimal",
+  maximumFractionDigits: 2,
+});
 </script>
 
 <template>
@@ -16,9 +25,14 @@ import TeamCardActivityChart from "./TeamCardActivityChart.vue";
           <span>&bullet;</span>
           <span>54 commits</span>
           <span>&bullet;</span>
-          <span>1.5k changes</span>
+          <span
+            >{{ numberFormatter.format(repoScan.linesChanged) }} changes</span
+          >
         </div>
-        <TeamCardActivityChart class="mt-auto max-w-[280px]" />
+        <TeamCardActivityChart
+          class="mt-auto max-w-[280px]"
+          :repo-scan="repoScan"
+        />
       </div>
       <div class="px-5 py-3">
         <div class="font-bold text-right text-gray-900">
