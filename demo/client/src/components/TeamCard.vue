@@ -8,8 +8,8 @@ defineProps<{
 }>();
 
 const numberFormatter = new Intl.NumberFormat("en-US", {
-  style: "decimal",
-  maximumFractionDigits: 2,
+  notation: 'compact',
+  compactDisplay: 'short',
 });
 </script>
 
@@ -23,7 +23,7 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
         >
           <span>7 contributors</span>
           <span>&bullet;</span>
-          <span>54 commits</span>
+          <span>{{ numberFormatter.format(repoScan.commitCount) }} commits</span>
           <span>&bullet;</span>
           <span
             >{{ numberFormatter.format(repoScan.linesChanged) }} changes</span
