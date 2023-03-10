@@ -14,6 +14,44 @@ const SIMPLE_QUERY = gql`query GetUser($login: String!, $first: Int = 100, $afte
   }
 }`
 
+const SIMPLE_FRAGMENTS_QUERY = gql`query (
+  $owner: String!,
+  $name: String!,
+  $since: GitTimestamp!,
+  $until: GitTimestamp!,
+  $last: Int!,
+  $after: String
+) {
+  repository(owner: $owner, name: $name) {
+    defaultBranchRef {
+      name
+      target {
+        ... on Commit {
+          history(since: $since, until: $until, last: $last, after: $after) {
+            totalCount
+            pageInfo {
+              hasNextPage
+              endCursor
+            }
+            nodes {
+              message
+              additions
+              deletions
+              changedFilesIfAvailable
+              committedDate
+              author {
+                user {
+                  login
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}`;
+
 const COMPLEX_QUERY = gql`query GetUser($login: String!, $first1: Int = 100, $after1: String, $first2: Int = 100, $after2: String, $first3: Int = 100, $after3: String) {
   user (login: $login) {
     login
@@ -29,7 +67,7 @@ const COMPLEX_QUERY = gql`query GetUser($login: String!, $first1: Int = 100, $af
         }
       }
     }
-    repositories (last: $first3, after: $after3) {
+    repositories (first: $first3, after: $after3) {
       totalCount
       nodes {
         login
@@ -46,6 +84,18 @@ describe('main module', () => {
       {
         path: [ 'user', 'followers' ],
         limitVarName: 'first',
+        cursorVarName: 'after'
+      },
+    ]);
+  });
+
+  test('finds pagination variables in simple query with fragment', () => {
+    const paginationParams = extractPaginators(SIMPLE_FRAGMENTS_QUERY);
+
+    expect(paginationParams).toEqual([
+      {
+        path: [ 'repository', 'defaultBranchRef', 'target', 'history' ],
+        limitVarName: 'last',
         cursorVarName: 'after'
       },
     ]);
