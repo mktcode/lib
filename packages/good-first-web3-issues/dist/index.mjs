@@ -493,6 +493,7 @@ var whitelist = [
 ];
 function* cycleWhitelist() {
   let index = 0;
+  whitelist.sort(() => 0.5 - Math.random());
   while (true) {
     yield whitelist[index];
     index = (index + 1) % whitelist.length;

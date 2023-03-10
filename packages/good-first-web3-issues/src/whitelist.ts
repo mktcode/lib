@@ -446,6 +446,7 @@ const whitelist = [
   
 function* cycleWhitelist(): Generator<string, string> {
 	let index = 0;
+	whitelist.sort(() => 0.5 - Math.random());
 	while (true) {
 		yield whitelist[index] as string;
 		index = (index + 1) % whitelist.length;
