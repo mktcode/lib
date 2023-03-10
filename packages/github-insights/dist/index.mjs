@@ -20,7 +20,14 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
-import { graphql } from "@octokit/graphql";
+import { Octokit } from "octokit";
+
+// src/evaluators/repoCommits.ts
+function evaluateRepoCommits(commits) {
+  return {
+    commitCount: 0
+  };
+}
 
 // src/evaluators/user.ts
 function evaluateUserScan(userScan) {
@@ -88,6 +95,17 @@ function evaluateUserScan(userScan) {
     mergedPullRequestCount30d,
     mergedPullRequestCount365d
   };
+}
+
+// src/fetchers/repoCommits.ts
+function fetchRepoCommits(client, owner, repo, start, end) {
+  return __async(this, null, function* () {
+    const commits = yield client.paginate("GET /repos/{org}/{repo}/commits", {
+      owner,
+      repo
+    });
+    return commits;
+  });
 }
 
 // src/fetchers/user.ts
@@ -161,7 +179,7 @@ var GITHUB_USER_SCAN_QUERY = gql`query (
 function fetchUserScan(client, login) {
   return __async(this, null, function* () {
     const { user } = yield graphqlFetchAll(
-      client,
+      client.graphql,
       GITHUB_USER_SCAN_QUERY,
       {
         login,
@@ -177,12 +195,7 @@ function fetchUserScan(client, login) {
 // src/index.ts
 var GithubInsights = class {
   constructor(options) {
-    this.client = graphql.defaults({
-      baseUrl: options.sourceUrl,
-      headers: {
-        Authorization: `bearer ${options.viewerToken}`
-      }
-    });
+    this.client = new Octokit({ auth: options.viewerToken, baseUrl: options.sourceUrl });
   }
   scanUser(login) {
     return __async(this, null, function* () {
@@ -194,6 +207,12 @@ var GithubInsights = class {
     return __async(this, null, function* () {
       const userScans = yield Promise.all(logins.map((login) => fetchUserScan(this.client, login)));
       return Object.fromEntries(userScans.map((userScan) => [userScan.login, evaluateUserScan(userScan)]));
+    });
+  }
+  scanRepoCommits(owner, repo, start, end) {
+    return __async(this, null, function* () {
+      const commits = yield fetchRepoCommits(this.client, owner, repo, start, end);
+      return evaluateRepoCommits(commits);
     });
   }
 };

@@ -1,7 +1,11 @@
-import { graphql } from '@octokit/graphql';
+import { Octokit } from 'octokit';
+
+type RepoCommitsResult = {
+    commitCount: number;
+};
 
 declare class GithubInsights {
-    client: ReturnType<typeof graphql.defaults>;
+    client: Octokit;
     constructor(options: {
         viewerToken: string;
         sourceUrl?: string;
@@ -28,6 +32,7 @@ declare class GithubInsights {
             mergedPullRequestCount365d: number;
         };
     }>;
+    scanRepoCommits(owner: string, repo: string, start: Date, end: Date): Promise<RepoCommitsResult>;
 }
 
 export { GithubInsights };
