@@ -10,8 +10,8 @@
   "author": "mktcode",
   "license": "ISC",
   "dependencies": {
-    "@mktcodelib/good-first-web3-issues": "workspace:^0.5.4",
-    "@mktcodelib/web3indexer": "workspace:^0.0.1",
+    "@mktcodelib/good-first-web3-issues": "workspace:^0.6.0",
+    "@mktcodelib/web3indexer": "workspace:^0.1.1",
     "ethers": "^6.0.8",
     "graphql": "^16.6.0"
   }
