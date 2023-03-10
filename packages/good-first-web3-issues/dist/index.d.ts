@@ -67,26 +67,30 @@ type OrganizationNode = Organization & {
         nodes: RepositoryNode[];
     };
 };
+type RateLimit = {
+    used: number;
+    resetAt: string;
+};
 
 type Options = {
     githubToken: string;
     port?: number;
     redisConfig?: Record<string, any>;
-    syncInterval?: number;
+    rateLimit?: number;
     corsOrigin?: CorsOptions['origin'];
     debug?: boolean;
 };
 declare class GoodFirstWeb3Issues {
     private port;
-    private syncInterval;
+    private rateLimit;
     private debug;
     private db;
     private server;
     private github;
-    constructor({ githubToken, port, redisConfig, syncInterval, corsOrigin, debug, }: Options);
+    constructor({ githubToken, port, redisConfig, rateLimit, corsOrigin, debug, }: Options);
     log(...args: any[]): void;
     sanitizeData(orgOrUser: OrganizationNode): Organization;
-    wait(remainingRateLimit: number): Promise<void>;
+    wait(rateLimit: RateLimit): Promise<void>;
     sync(): Promise<void>;
     run(): void;
 }

@@ -11,14 +11,14 @@ type Options = {
   githubToken: string;
   port?: number;
   redisConfig?: Record<string, any>;
-  syncInterval?: number;
+  rateLimit?: number;
   corsOrigin?: CorsOptions['origin']
   debug?: boolean;
 }
 
 export class GoodFirstWeb3Issues {
   private port: number;
-  private syncInterval: number;
+  private rateLimit: number;
   private debug: boolean;
 
   private db: ReturnType<typeof createClient>;
@@ -29,17 +29,17 @@ export class GoodFirstWeb3Issues {
     githubToken,
     port = 3000,
     redisConfig = {},
-    syncInterval = 1e3 * 60 * 5,
+    rateLimit = 5000,
     corsOrigin = /openq\.dev$/,
     debug = false,
   }: Options) {
     this.port = port;
-    this.syncInterval = syncInterval;
     this.debug = debug;
 
     this.db = createClient(redisConfig);
     this.db.on('error', (err: any) => console.log('Redis Client Error', err));
 
+    this.rateLimit = rateLimit;
 
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }))
@@ -83,22 +83,24 @@ export class GoodFirstWeb3Issues {
     };
   }
 
-  async wait(remainingRateLimit: number) {
-    let waitTime = this.syncInterval;
-    if (remainingRateLimit < 1000) {
-      waitTime = waitTime * 5;
+  async wait(rateLimit: RateLimit) {
+    let waitTime = 0;
+
+    this.log(`Rate limit: ${rateLimit.used}/${this.rateLimit}`)
+
+    if (rateLimit.used >= this.rateLimit) {
+      waitTime = new Date(rateLimit.resetAt).getTime() - Date.now() + 1e3 * 60;
+      this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until reset...`)
     }
 
-    this.log(`Rate limit is ${remainingRateLimit}! Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes...`)
     await new Promise((resolve) => setTimeout(resolve, waitTime));
   }
 
   async sync() {
     const { value: login } = whitelistCycle.next();
-    this.log(`Syncing ${login}...`)
+    this.log(`\nSyncing ${login}...`);
   
     let orgOrUser;
-    let remainingRateLimit = 5000;
   
     try {
       const orgResponse = await graphqlFetchAll<{ rateLimit: RateLimit, organization: OrganizationNode }>(
@@ -107,7 +109,7 @@ export class GoodFirstWeb3Issues {
         { login, first: 100 },
       );
       orgOrUser = orgResponse.organization;
-      remainingRateLimit = orgResponse.rateLimit.remaining;
+      await this.wait(orgResponse.rateLimit);
     } catch {
       try {
         const userResponse = await graphqlFetchAll<{ rateLimit: RateLimit, user: OrganizationNode }>(
@@ -116,9 +118,11 @@ export class GoodFirstWeb3Issues {
           { login, first: 100 },
         );
         orgOrUser = userResponse.user;
-        remainingRateLimit = userResponse.rateLimit.remaining;
+        await this.wait(userResponse.rateLimit);
       } catch (e) {
         this.log(e);
+        const resetAt = new Date(Date.now() + 5 * 60 * 1e3).toISOString();
+        await this.wait({ used: this.rateLimit, resetAt });
       }
     }
   
@@ -126,7 +130,6 @@ export class GoodFirstWeb3Issues {
       this.db.hDel('orgs', login)
       this.log(`Removed ${login}!`);
 
-      await this.wait(remainingRateLimit);
       this.sync();
 
       return;
@@ -140,19 +143,23 @@ export class GoodFirstWeb3Issues {
           { owner: orgOrUser.login, name: repo.name, first: 100 },
         );
         repo.issues.nodes = issuesResponse.repository.issues.nodes;
-        remainingRateLimit = issuesResponse.rateLimit.remaining;
+        await this.wait(issuesResponse.rateLimit);
       } catch (e) {
         this.log(e);
+        const resetAt = new Date(Date.now() + 5 * 60 * 1e3).toISOString();
+        await this.wait({ used: this.rateLimit, resetAt });
       }
     }
   
     orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
+    const issueCount = orgOrUser.repositories.nodes.reduce((acc, repo) => acc + repo.issues.nodes.length, 0);
+
+    this.log(`Found ${orgOrUser.repositories.nodes.length} repo(s) with ${issueCount} issue(s) for ${login}.`)
   
     if (orgOrUser.repositories.nodes.length === 0) {
       this.db.hDel('orgs', login)
       this.log(`Removed ${login}!`);
 
-      await this.wait(remainingRateLimit);
       this.sync();
 
       return;
@@ -161,7 +168,6 @@ export class GoodFirstWeb3Issues {
     await this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
     this.log(`Synced ${login}!`);
 
-    await this.wait(remainingRateLimit);
     this.sync();
   }
 

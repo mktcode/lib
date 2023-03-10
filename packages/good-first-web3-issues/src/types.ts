@@ -75,5 +75,6 @@ export type OrganizationNode = Organization & {
 }
 
 export type RateLimit = {
-  remaining: number;
+  used: number;
+  resetAt: string;
 }

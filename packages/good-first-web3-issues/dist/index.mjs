@@ -504,7 +504,8 @@ var whitelistCycle = cycleWhitelist();
 import gql from "graphql-tag";
 var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) {
   rateLimit {
-    remaining
+    used
+    resetAt
   }
   organization (login: $login) {
     id
@@ -543,7 +544,8 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
 }`;
 var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) {
   rateLimit {
-    remaining
+    used
+    resetAt
   }
   user (login: $login) {
     id
@@ -582,7 +584,8 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
 }`;
 var REPO_ISSUES_QUERY = gql`query ($owner: String!, $name: String!, $first: Int!, $after: String) {
   rateLimit {
-    remaining
+    used
+    resetAt
   }
   repository (owner: $owner, name: $name) {
     issues (first: $first, after: $after, labels: ["good first issue"], states: [OPEN]) {
@@ -625,15 +628,15 @@ var GoodFirstWeb3Issues = class {
     githubToken,
     port = 3e3,
     redisConfig = {},
-    syncInterval = 1e3 * 60 * 5,
+    rateLimit = 5e3,
     corsOrigin = /openq\.dev$/,
     debug = false
   }) {
     this.port = port;
-    this.syncInterval = syncInterval;
     this.debug = debug;
     this.db = createClient(redisConfig);
     this.db.on("error", (err) => console.log("Redis Client Error", err));
+    this.rateLimit = rateLimit;
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }));
     this.server.get("/", (_req, res) => __async(this, null, function* () {
@@ -667,22 +670,23 @@ var GoodFirstWeb3Issues = class {
       }))
     });
   }
-  wait(remainingRateLimit) {
+  wait(rateLimit) {
     return __async(this, null, function* () {
-      let waitTime = this.syncInterval;
-      if (remainingRateLimit < 1e3) {
-        waitTime = waitTime * 5;
+      let waitTime = 0;
+      this.log(`Rate limit: ${rateLimit.used}/${this.rateLimit}`);
+      if (rateLimit.used >= this.rateLimit) {
+        waitTime = new Date(rateLimit.resetAt).getTime() - Date.now() + 1e3 * 60;
+        this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until reset...`);
       }
-      this.log(`Rate limit is ${remainingRateLimit}! Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes...`);
       yield new Promise((resolve) => setTimeout(resolve, waitTime));
     });
   }
   sync() {
     return __async(this, null, function* () {
       const { value: login } = whitelistCycle.next();
-      this.log(`Syncing ${login}...`);
+      this.log(`
+Syncing ${login}...`);
       let orgOrUser;
-      let remainingRateLimit = 5e3;
       try {
         const orgResponse = yield graphqlFetchAll(
           this.github,
@@ -690,7 +694,7 @@ var GoodFirstWeb3Issues = class {
           { login, first: 100 }
         );
         orgOrUser = orgResponse.organization;
-        remainingRateLimit = orgResponse.rateLimit.remaining;
+        yield this.wait(orgResponse.rateLimit);
       } catch (e) {
         try {
           const userResponse = yield graphqlFetchAll(
@@ -699,15 +703,16 @@ var GoodFirstWeb3Issues = class {
             { login, first: 100 }
           );
           orgOrUser = userResponse.user;
-          remainingRateLimit = userResponse.rateLimit.remaining;
+          yield this.wait(userResponse.rateLimit);
         } catch (e2) {
           this.log(e2);
+          const resetAt = new Date(Date.now() + 5 * 60 * 1e3).toISOString();
+          yield this.wait({ used: this.rateLimit, resetAt });
         }
       }
       if (!orgOrUser) {
         this.db.hDel("orgs", login);
         this.log(`Removed ${login}!`);
-        yield this.wait(remainingRateLimit);
         this.sync();
         return;
       }
@@ -719,22 +724,24 @@ var GoodFirstWeb3Issues = class {
             { owner: orgOrUser.login, name: repo.name, first: 100 }
           );
           repo.issues.nodes = issuesResponse.repository.issues.nodes;
-          remainingRateLimit = issuesResponse.rateLimit.remaining;
+          yield this.wait(issuesResponse.rateLimit);
         } catch (e) {
           this.log(e);
+          const resetAt = new Date(Date.now() + 5 * 60 * 1e3).toISOString();
+          yield this.wait({ used: this.rateLimit, resetAt });
         }
       }
       orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
+      const issueCount = orgOrUser.repositories.nodes.reduce((acc, repo) => acc + repo.issues.nodes.length, 0);
+      this.log(`Found ${orgOrUser.repositories.nodes.length} repo(s) with ${issueCount} issue(s) for ${login}.`);
       if (orgOrUser.repositories.nodes.length === 0) {
         this.db.hDel("orgs", login);
         this.log(`Removed ${login}!`);
-        yield this.wait(remainingRateLimit);
         this.sync();
         return;
       }
       yield this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
       this.log(`Synced ${login}!`);
-      yield this.wait(remainingRateLimit);
       this.sync();
     });
   }
