@@ -77,6 +77,19 @@ function evaluateRepoCommits(repoCommits) {
     };
     return acc;
   }, {});
+  const commitsByAuthor = commits.reduce((acc, commit) => {
+    var _a, _b, _c, _d, _e, _f;
+    if (!((_b = (_a = commit.author) == null ? void 0 : _a.user) == null ? void 0 : _b.login))
+      return acc;
+    const author = commit.author.user.login;
+    const commitCount2 = (_d = (_c = acc[author]) == null ? void 0 : _c.commitCount) != null ? _d : 0;
+    const linesChanged2 = (_f = (_e = acc[author]) == null ? void 0 : _e.linesChanged) != null ? _f : 0;
+    acc[author] = {
+      commitCount: commitCount2 + 1,
+      linesChanged: linesChanged2 + commit.additions + commit.deletions
+    };
+    return acc;
+  }, {});
   return {
     commitCount,
     linesChanged,
@@ -84,7 +97,8 @@ function evaluateRepoCommits(repoCommits) {
     commitsByDayNormalized: {
       commitCount: normalizeNumbers(Object.values(commitsByDay).map(({ commitCount: commitCount2 }) => commitCount2)),
       linesChanged: normalizeNumbers(Object.values(commitsByDay).map(({ linesChanged: linesChanged2 }) => linesChanged2))
-    }
+    },
+    commitsByAuthor
   };
 }
 

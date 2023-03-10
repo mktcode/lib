@@ -40,6 +40,10 @@ declare class GithubInsights {
             commitCount: number[];
             linesChanged: number[];
         };
+        commitsByAuthor: Record<string, {
+            commitCount: number;
+            linesChanged: number;
+        }>;
     }>;
 }
 
