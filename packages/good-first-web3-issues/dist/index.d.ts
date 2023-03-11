@@ -35,6 +35,9 @@ type IssueNode = Issue & {
 type Repository = {
     id: string;
     name: string;
+    owner: {
+        login: string;
+    };
     description: string;
     url: string;
     stargazersCount: number;

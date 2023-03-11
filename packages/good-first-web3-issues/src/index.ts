@@ -146,7 +146,7 @@ export class GoodFirstWeb3Issues {
         const issuesResponse = await graphqlFetchAll<{ rateLimit: RateLimit, repository: RepositoryNode }>(
           this.github,
           REPO_ISSUES_QUERY,
-          { owner: orgOrUser.login, name: repo.name, first: 100 },
+          { owner: repo.owner.login, name: repo.name, first: 100 },
         );
         repo.issues.nodes = issuesResponse.repository.issues.nodes;
         await this.wait(issuesResponse.rateLimit);

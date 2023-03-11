@@ -516,7 +516,7 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
     url
     websiteUrl
     avatarUrl
-    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}) {
+    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}, isFork: false, isLocked: false, privacy: PUBLIC) {
       totalCount
       pageInfo {
         hasNextPage
@@ -526,6 +526,9 @@ var ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String) 
         id
         name
         nameWithOwner
+        owner {
+          login
+        }
         description
         url
         stargazerCount
@@ -556,7 +559,7 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
     url
     websiteUrl
     avatarUrl
-    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}) {
+    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}, isFork: false, isLocked: false, privacy: PUBLIC) {
       totalCount
       pageInfo {
         hasNextPage
@@ -566,6 +569,9 @@ var USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after: String)
         id
         name
         nameWithOwner
+        owner {
+          login
+        }
         description
         url
         stargazerCount
@@ -727,7 +733,7 @@ Syncing ${login}...`);
           const issuesResponse = yield graphqlFetchAll(
             this.github,
             REPO_ISSUES_QUERY,
-            { owner: orgOrUser.login, name: repo.name, first: 100 }
+            { owner: repo.owner.login, name: repo.name, first: 100 }
           );
           repo.issues.nodes = issuesResponse.repository.issues.nodes;
           yield this.wait(issuesResponse.rateLimit);

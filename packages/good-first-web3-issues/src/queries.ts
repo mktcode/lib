@@ -13,7 +13,7 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
     url
     websiteUrl
     avatarUrl
-    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}) {
+    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}, isFork: false, isLocked: false, privacy: PUBLIC) {
       totalCount
       pageInfo {
         hasNextPage
@@ -23,6 +23,9 @@ export const ORG_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after:
         id
         name
         nameWithOwner
+        owner {
+          login
+        }
         description
         url
         stargazerCount
@@ -54,7 +57,7 @@ export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after
     url
     websiteUrl
     avatarUrl
-    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}) {
+    repositories (first: $first, after: $after, orderBy: {field: STARGAZERS, direction: DESC}, isFork: false, isLocked: false, privacy: PUBLIC) {
       totalCount
       pageInfo {
         hasNextPage
@@ -64,6 +67,9 @@ export const USER_REPOS_QUERY = gql`query ($login: String!, $first: Int!, $after
         id
         name
         nameWithOwner
+        owner {
+          login
+        }
         description
         url
         stargazerCount
