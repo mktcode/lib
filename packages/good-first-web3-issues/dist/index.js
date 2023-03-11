@@ -680,6 +680,10 @@ var GoodFirstWeb3Issues = class {
       }
       res.send(cached || {});
     }));
+    this.server.get("/lastSync", (_req, res) => __async(this, null, function* () {
+      const lastSync = yield this.db.get("lastSync");
+      res.send(lastSync);
+    }));
     this.github = import_graphql.graphql.defaults({
       headers: {
         Authorization: `bearer ${githubToken}`
@@ -721,6 +725,7 @@ var GoodFirstWeb3Issues = class {
       this.log(`
 Syncing ${login}...
 `);
+      this.db.set("lastSync", (/* @__PURE__ */ new Date()).toISOString());
       let orgOrUser;
       try {
         const orgResponse = yield (0, import_graphql_fetch_all.graphqlFetchAll)(
@@ -775,7 +780,7 @@ Syncing ${login}...
         this.sync();
         return;
       }
-      yield this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
+      this.db.hSet("orgs", login, JSON.stringify(this.sanitizeData(orgOrUser)));
       this.log(`Synced ${login}!`);
       this.sync();
     });

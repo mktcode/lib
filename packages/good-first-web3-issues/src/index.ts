@@ -55,6 +55,11 @@ export class GoodFirstWeb3Issues {
       res.send(cached || {});
     });
 
+    this.server.get('/lastSync', async (_req, res) => {
+      const lastSync = await this.db.get('lastSync');
+      res.send(lastSync);
+    });
+
     this.github = graphql.defaults({
       headers: {
         Authorization: `bearer ${githubToken}`,
@@ -100,6 +105,7 @@ export class GoodFirstWeb3Issues {
   async sync() {
     const { value: login } = whitelistCycle.next();
     this.log(`\nSyncing ${login}...\n`);
+    this.db.set('lastSync', new Date().toISOString());
   
     let orgOrUser;
   
@@ -166,9 +172,8 @@ export class GoodFirstWeb3Issues {
       return;
     }
   
-    await this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
+    this.db.hSet('orgs', login, JSON.stringify(this.sanitizeData(orgOrUser)));
     this.log(`Synced ${login}!`);
-
     this.sync();
   }
 
