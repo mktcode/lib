@@ -21,7 +21,7 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
         <div
           class="flex justify-center space-x-1 text-xs text-gray-400 text-center p-3"
         >
-          <span>7 contributors</span>
+          <span>{{ Object.keys(repoScan.commitsByAuthor).length }} contributors</span>
           <span>&bullet;</span>
           <span>{{ numberFormatter.format(repoScan.commitCount) }} commits</span>
           <span>&bullet;</span>
