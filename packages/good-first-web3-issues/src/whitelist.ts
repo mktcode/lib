@@ -289,7 +289,6 @@ const whitelist = [
 	"4everland",
 	"RunOnFlux",
 	"sigp",
-	"Build-the-Bear",
 	"amberdata",
 	"cheqd",
 	"fluree",
