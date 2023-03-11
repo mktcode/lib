@@ -157,10 +157,11 @@ export class GoodFirstWeb3Issues {
       }
     }
   
+    const totalRepoCount = orgOrUser.repositories.totalCount;
     orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
     const issueCount = orgOrUser.repositories.nodes.reduce((acc, repo) => acc + repo.issues.nodes.length, 0);
 
-    this.log(`Found ${orgOrUser.repositories.nodes.length} repo(s) with ${issueCount} issue(s) for ${login}.`)
+    this.log(`Found ${totalRepoCount} repos total, ${orgOrUser.repositories.nodes.length} of them with a total of ${issueCount} good first issues.`)
   
     if (orgOrUser.repositories.nodes.length === 0) {
       this.db.hDel('orgs', login)

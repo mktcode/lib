@@ -337,7 +337,6 @@ var whitelist = [
   "4everland",
   "RunOnFlux",
   "sigp",
-  "Build-the-Bear",
   "amberdata",
   "cheqd",
   "fluree",
@@ -743,9 +742,10 @@ Syncing ${login}...`);
           yield this.wait({ used: this.rateLimit, resetAt });
         }
       }
+      const totalRepoCount = orgOrUser.repositories.totalCount;
       orgOrUser.repositories.nodes = orgOrUser.repositories.nodes.filter((repo) => repo.issues.nodes.length > 0);
       const issueCount = orgOrUser.repositories.nodes.reduce((acc, repo) => acc + repo.issues.nodes.length, 0);
-      this.log(`Found ${orgOrUser.repositories.nodes.length} repo(s) with ${issueCount} issue(s) for ${login}.`);
+      this.log(`Found ${totalRepoCount} repos total, ${orgOrUser.repositories.nodes.length} of them with a total of ${issueCount} good first issues.`);
       if (orgOrUser.repositories.nodes.length === 0) {
         this.db.hDel("orgs", login);
         this.log(`Removed ${login}!`);
