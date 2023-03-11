@@ -42,7 +42,7 @@ const data = computed<ChartData<"line">>(() => {
         data: props.repoScan.commitsByDayNormalized.linesChanged,
         backgroundColor: "rgba(255, 0, 0, 0.05)",
         borderColor: "red",
-        borderWidth: 1,
+        borderWidth: 2,
         pointBorderWidth: 0,
         pointRadius: 0,
         pointHoverRadius: 0,

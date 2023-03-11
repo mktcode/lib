@@ -1,21 +1,56 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
+import { githubInsights } from "../lib/githubInsights";
 import TeamCardScores from "./TeamCardScores.vue";
 import TeamCardMembers from "./TeamCardMembers.vue";
 import TeamCardActivityChart from "./TeamCardActivityChart.vue";
 
-defineProps<{
-  repoScan: any;
+const props = defineProps<{
+  owner: string;
+  name: string;
 }>();
 
 const numberFormatter = new Intl.NumberFormat("en-US", {
   notation: "compact",
   compactDisplay: "short",
 });
+
+const repoComits = ref<{
+  commitCount: number;
+  linesChanged: number;
+  commitsByAuthor: Record<string, { commitCount: number; linesChanged: number }>;
+  commitsByDay: Record<string, { commitCount: number; linesChanged: number }>;
+  commitsByDayNormalized: {
+    commitCount: number[];
+    linesChanged: number[];
+  };
+}>();
+const loadingData = ref(false);
+
+const now = new Date();
+const oneMonthAgo = new Date();
+oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+watch(() => props.name, async () => {
+  loadingData.value = true;
+  try {
+    repoComits.value = await githubInsights.scanRepoCommits(
+      props.owner,
+      props.name,
+      oneMonthAgo,
+      now
+    );
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loadingData.value = false;
+  }
+}, { immediate: true });
 </script>
 
 <template>
   <div class="border rounded-lg">
-    <div class="flex flex-col sm:flex-row">
+    <div v-if="repoComits && !loadingData" class="flex flex-col sm:flex-row">
       <div class="flex flex-col border-b sm:border-b-0 sm:border-r">
         <TeamCardMembers />
         <div
@@ -23,22 +58,22 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
         >
           <span
             >{{
-              Object.keys(repoScan.commitsByAuthor).length
+              Object.keys(repoComits.commitsByAuthor).length
             }}
             contributors</span
           >
           <span>&bullet;</span>
           <span
-            >{{ numberFormatter.format(repoScan.commitCount) }} commits</span
+            >{{ numberFormatter.format(repoComits.commitCount) }} commits</span
           >
           <span>&bullet;</span>
           <span
-            >{{ numberFormatter.format(repoScan.linesChanged) }} changes</span
+            >{{ numberFormatter.format(repoComits.linesChanged) }} changes</span
           >
         </div>
         <TeamCardActivityChart
           class="mt-auto max-w-[280px]"
-          :repo-scan="repoScan"
+          :repo-scan="repoComits"
         />
       </div>
       <div class="px-5 py-3">
@@ -50,6 +85,12 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
         </div>
         <TeamCardScores />
       </div>
+    </div>
+    <div
+      v-else
+      class="text-gray-500 animate-pulse border rounded-lg px-3 py-1"
+    >
+      scanning repo...
     </div>
   </div>
 </template>
