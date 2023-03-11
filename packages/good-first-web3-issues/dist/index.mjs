@@ -678,12 +678,10 @@ var GoodFirstWeb3Issues = class {
   wait(rateLimit) {
     return __async(this, null, function* () {
       let waitTime = 0;
-      process.stdout.write("\x1B[1A\x1B[0G");
-      this.log(`\rRate limit: ${rateLimit.used}/${this.rateLimit}`);
+      this.log(`Rate limit: ${rateLimit.used}/${this.rateLimit}`);
       if (rateLimit.used >= this.rateLimit) {
         waitTime = new Date(rateLimit.resetAt).getTime() - Date.now() + 1e3 * 60;
-        this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until rate limit resets...
-`);
+        this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until rate limit resets...`);
       }
       yield new Promise((resolve) => setTimeout(resolve, waitTime));
     });
@@ -692,8 +690,7 @@ var GoodFirstWeb3Issues = class {
     return __async(this, null, function* () {
       const { value: login } = whitelistCycle.next();
       this.log(`
-Syncing ${login}...
-`);
+Syncing ${login}...`);
       this.db.set("lastSync", (/* @__PURE__ */ new Date()).toISOString());
       let orgOrUser;
       try {

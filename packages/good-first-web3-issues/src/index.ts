@@ -91,12 +91,11 @@ export class GoodFirstWeb3Issues {
   async wait(rateLimit: RateLimit) {
     let waitTime = 0;
 
-    process.stdout.write('\u001b[1A\u001b[0G');
-    this.log(`\rRate limit: ${rateLimit.used}/${this.rateLimit}`)
+    this.log(`Rate limit: ${rateLimit.used}/${this.rateLimit}`)
 
     if (rateLimit.used >= this.rateLimit) {
       waitTime = new Date(rateLimit.resetAt).getTime() - Date.now() + 1e3 * 60;
-      this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until rate limit resets...\n`)
+      this.log(`Waiting ${(waitTime / 1e3 / 60).toFixed(2)} minutes until rate limit resets...`)
     }
 
     await new Promise((resolve) => setTimeout(resolve, waitTime));
@@ -104,7 +103,7 @@ export class GoodFirstWeb3Issues {
 
   async sync() {
     const { value: login } = whitelistCycle.next();
-    this.log(`\nSyncing ${login}...\n`);
+    this.log(`\nSyncing ${login}...`);
     this.db.set('lastSync', new Date().toISOString());
   
     let orgOrUser;
