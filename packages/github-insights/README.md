@@ -40,11 +40,14 @@ const {
   commitsByDayNormalized: {
     commitCount: commitCountNormalized,
     linesChanged: linesChangedNormalized,
-  }
+  },
+  commitsByAuthor,
 } = await githubInsights.scanRepoCommits('mktcode', 'lib', since, until);
 
 console.log(linesChangedNormalized);
 // [0.0036611882074566735,0.02267058898765748, ... ]
+console.log(commitsByAuthor);
+// { mktcode: commitCount: 12, linesChanged: 86 }, rickkdev: { ... } }
 ```
 
 # Scores
