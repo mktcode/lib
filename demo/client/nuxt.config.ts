@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     clientSecret: process.env.NUXT_CLIENT_SECRET,
     public: {
-      clientId: 'acf1b9890f41cf7daf8e',
+      clientId: process.env.NUXT_CLIENT_ID,
     }
   },
   vite: {
