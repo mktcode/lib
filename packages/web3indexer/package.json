@@ -1,6 +1,6 @@
 {
   "name": "@mktcodelib/web3indexer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Simple EVM event indexer.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
