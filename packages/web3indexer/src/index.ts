@@ -13,8 +13,10 @@ type Options = {
   debug?: boolean;
 }
 
+export type Web3IndexerDB = ReturnType<typeof createClient>;
+
 export class Web3Indexer {
-  public db: ReturnType<typeof createClient>;
+  public db: Web3IndexerDB;
   public server: Application;
 
   private port: number;

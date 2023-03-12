@@ -11,8 +11,9 @@ type Options = {
     port?: number;
     debug?: boolean;
 };
+type Web3IndexerDB = ReturnType<typeof createClient>;
 declare class Web3Indexer {
-    db: ReturnType<typeof createClient>;
+    db: Web3IndexerDB;
     server: Application;
     private port;
     private debug;
@@ -26,4 +27,4 @@ declare class Web3Indexer {
     start(): void;
 }
 
-export { Web3Indexer };
+export { Web3Indexer, Web3IndexerDB };
