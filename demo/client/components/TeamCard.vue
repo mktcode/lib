@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { githubInsights } from "../lib/githubInsights";
-import TeamCardScores from "./TeamCardScores.vue";
-import TeamCardMembers from "./TeamCardMembers.vue";
-import TeamCardActivityChart from "./TeamCardActivityChart.vue";
+import { GithubInsights } from "@mktcodelib/github-insights";
+
+const accessToken = useState('accessToken', () => ref<string | null>(null))
 
 const props = defineProps<{
   owner: string;
@@ -37,6 +35,10 @@ oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 watch(
   () => props.name,
   async () => {
+    if (!accessToken.value) return;
+
+    const githubInsights = new GithubInsights({ viewerToken: accessToken.value });
+
     loadingData.value = true;
     try {
       repoComits.value = await githubInsights.scanRepoCommits(

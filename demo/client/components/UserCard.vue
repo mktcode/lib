@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import { githubInsights } from "../lib/githubInsights";
+import { GithubInsights } from "@mktcodelib/github-insights";
+
+const accessToken = useState('accessToken', () => ref<string | null>(null))
 
 const props = defineProps<{
   name: string;
@@ -21,6 +22,10 @@ const user = ref<{
 watch(
   () => props.name,
   async () => {
+    if (!accessToken.value) return;
+
+    const githubInsights = new GithubInsights({ viewerToken: accessToken.value });
+
     loadingData.value = true;
     try {
       user.value = await githubInsights.scanUser(props.name);

@@ -14,7 +14,6 @@
     "graphql-fetch-all:build": "pnpm --filter graphql-fetch-all build",
     "graphql-fetch-all:test": "pnpm --filter graphql-fetch-all test",
 
-    "client:lint": "pnpm --filter client lint",
     "client:start": "pnpm --filter client dev",
 
     "server:lint": "pnpm --filter server lint",

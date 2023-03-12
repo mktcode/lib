@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import TeamCardMember from "./TeamCardMember.vue";
-</script>
-
 <template>
   <div class="flex items-center justify-center -space-x-3 px-5 pt-3">
     <TeamCardMember

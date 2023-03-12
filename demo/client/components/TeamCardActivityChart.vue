@@ -9,7 +9,6 @@ import {
   type ChartOptions,
   type ChartData,
 } from "chart.js";
-import { computed } from "vue";
 import { Line } from "vue-chartjs";
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Filler);

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import TeamCardScore from "./TeamCardScore.vue";
-
 function randomScore() {
   return Math.floor(Math.random() * 5) + 1;
 }

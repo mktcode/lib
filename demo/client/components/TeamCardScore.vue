@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { useKeyframes } from "../composables/useKeyframes";
-
 defineProps<{
   label: string;
   score: number;
