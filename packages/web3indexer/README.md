@@ -104,3 +104,22 @@ Listening on http://localhost:3000
 Routes:
 GET /events/transfers
 ```
+
+# The Graph comparison
+
+To make it more clear what this is and what it is not, here is a comparison table with The Graph.
+
+| Feature                          | Web3 Indexer | The Graph |
+|----------------------------------|--------------|-----------|
+| decentralized                    | -            | x         |
+| unlimited number of listeners    | -            | x         |
+| contract factory support         | x            | x         |
+| GraphQL support                  | x            | x         |
+| REST support                     | x            | -         |
+| self-hosted/self-owned           | x            | -         |
+| index arbitrary data / call APIs | x            | -         |
+| listen to off-chain events       | x            | -         |
+| custom billing (ERC20, etc.)...  | x            | -         |
+| ...per endpoint                  | x            | -         |
+| package size                     | 22 kB        | 563 kB    |
+| cognitive load                   | low          | medium    |
