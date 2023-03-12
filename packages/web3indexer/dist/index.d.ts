@@ -4,22 +4,26 @@ import { createClient } from 'redis';
 import { InterfaceAbi, JsonRpcProvider, Contract } from 'ethers';
 import { buildSchema } from 'graphql';
 
+type Web3IndexerDB = ReturnType<typeof createClient>;
 type ApiOptions = {
     corsOrigin: CorsOptions['origin'];
     port: number;
+    db: Web3IndexerDB;
 };
-type Options = Partial<ApiOptions> & {
+type Options = {
     provider: string | JsonRpcProvider;
     redisConfig?: Record<string, any>;
     debug?: boolean;
+    corsOrigin?: CorsOptions['origin'];
+    port?: number;
 };
-type Web3IndexerDB = ReturnType<typeof createClient>;
 declare class Web3IndexerApi {
     server: Application;
-    constructor({ corsOrigin, port }: ApiOptions);
-    get(path: string, handler: (req: Request, res: Response) => void): void;
-    post(path: string, handler: (req: Request, res: Response) => void): void;
-    graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
+    db: Web3IndexerDB;
+    constructor({ corsOrigin, port, db }: ApiOptions);
+    get(path: string, handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void): void;
+    post(path: string, handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void): void;
+    graphql(schema: ReturnType<typeof buildSchema>, resolvers: (db: Web3IndexerDB) => Record<string, any>): void;
 }
 declare class Web3IndexerContract {
     instance: Contract;

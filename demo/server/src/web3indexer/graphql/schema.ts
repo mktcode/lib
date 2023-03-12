@@ -1,8 +1,7 @@
 import { buildASTSchema } from "graphql";
 import gql from "graphql-tag";
 
-export default buildASTSchema(gql`
-
+const ast = gql`
 type Transfer {
   from: String
   to: String
@@ -12,5 +11,6 @@ type Transfer {
 type Query {
   transfers: [Transfer!]
 }
+`;
 
-`);
+export const schema = buildASTSchema(ast);

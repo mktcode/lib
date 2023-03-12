@@ -5,23 +5,29 @@ import { Contract, InterfaceAbi, JsonRpcProvider } from 'ethers';
 import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'graphql';
 
+export type Web3IndexerDB = ReturnType<typeof createClient>;
+
 type ApiOptions = {
   corsOrigin: CorsOptions['origin'];
   port: number;
+  db: Web3IndexerDB;
 }
 
-type Options = Partial<ApiOptions> & {
+type Options = {
   provider: string | JsonRpcProvider;
   redisConfig?: Record<string, any>;
   debug?: boolean;
+  corsOrigin?: CorsOptions['origin'];
+  port?: number;
 }
-
-export type Web3IndexerDB = ReturnType<typeof createClient>;
 
 class Web3IndexerApi {
   public server: Application;
+  public db: Web3IndexerDB;
 
-  constructor({ corsOrigin, port }: ApiOptions) {
+  constructor({ corsOrigin, port, db }: ApiOptions) {
+    this.db = db;
+
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }))
     this.server.listen(port, () => {
@@ -35,18 +41,27 @@ class Web3IndexerApi {
     });
   }
 
-  get(path: string, handler: (req: Request, res: Response) => void) {
-    this.server.get(path, handler)
+  get(
+    path: string,
+    handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void
+  ) {
+    this.server.get(path, handler(this.db))
   }
 
-  post(path: string, handler: (req: Request, res: Response) => void) {
-    this.server.post(path, handler)
+  post(
+    path: string,
+    handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void
+  ) {
+    this.server.post(path, handler(this.db))
   }
 
-  graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>) {
+  graphql(
+    schema: ReturnType<typeof buildSchema>,
+    resolvers: (db: Web3IndexerDB) => Record<string, any>
+  ) {
     this.server.use('/graphql', graphqlHTTP({
       schema,
-      rootValue: resolvers,
+      rootValue: resolvers(this.db),
       graphiql: true,
     }));
   }
@@ -98,7 +113,7 @@ export class Web3Indexer {
     this.db.on('error', (err: any) => this.log('Redis Client Error', err));
     this.db.connect();
 
-    this.api = new Web3IndexerApi({ corsOrigin, port });
+    this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
   }
 
   log(...args: any[]) {

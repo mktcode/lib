@@ -59,7 +59,8 @@ var import_redis = require("redis");
 var import_ethers = require("ethers");
 var import_express_graphql = require("express-graphql");
 var Web3IndexerApi = class {
-  constructor({ corsOrigin, port }) {
+  constructor({ corsOrigin, port, db }) {
+    this.db = db;
     this.server = (0, import_express.default)();
     this.server.use((0, import_cors.default)({ origin: corsOrigin }));
     this.server.listen(port, () => {
@@ -73,15 +74,15 @@ var Web3IndexerApi = class {
     });
   }
   get(path, handler) {
-    this.server.get(path, handler);
+    this.server.get(path, handler(this.db));
   }
   post(path, handler) {
-    this.server.post(path, handler);
+    this.server.post(path, handler(this.db));
   }
   graphql(schema, resolvers) {
     this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
       schema,
-      rootValue: resolvers,
+      rootValue: resolvers(this.db),
       graphiql: true
     }));
   }
@@ -113,7 +114,7 @@ var Web3Indexer = class {
     this.db = (0, import_redis.createClient)(redisConfig);
     this.db.on("error", (err) => this.log("Redis Client Error", err));
     this.db.connect();
-    this.api = new Web3IndexerApi({ corsOrigin, port });
+    this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
   }
   log(...args) {
     if (this.debug) {
