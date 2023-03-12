@@ -58,6 +58,43 @@ var import_cors = __toESM(require("cors"));
 var import_redis = require("redis");
 var import_ethers = require("ethers");
 var import_express_graphql = require("express-graphql");
+var Web3IndexerApi = class {
+  constructor({ corsOrigin, port }) {
+    this.server = (0, import_express.default)();
+    this.server.use((0, import_cors.default)({ origin: corsOrigin }));
+    this.server.listen(port, () => {
+      console.log(`Listening on http://localhost:${port}`);
+      console.log("\nRoutes:");
+      this.server._router.stack.forEach((middleware) => {
+        if (middleware.route) {
+          console.log(`GET ${middleware.route.path}`);
+        }
+      });
+    });
+  }
+  get(path, handler) {
+    this.server.get(path, handler);
+  }
+  post(path, handler) {
+    this.server.post(path, handler);
+  }
+  graphql(schema, resolvers) {
+    this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
+      schema,
+      rootValue: resolvers,
+      graphiql: true
+    }));
+  }
+};
+var Web3IndexerContract = class {
+  constructor(address, abi, provider, db) {
+    this.instance = new import_ethers.Contract(address, abi, provider);
+    this.db = db;
+  }
+  store(event, listener) {
+    this.instance.on(event, listener(this.db));
+  }
+};
 var Web3Indexer = class {
   constructor({
     provider,
@@ -67,7 +104,6 @@ var Web3Indexer = class {
     debug = false
   }) {
     this.contracts = [];
-    this.port = port;
     this.debug = debug;
     if (typeof provider === "string") {
       this.provider = new import_ethers.JsonRpcProvider(provider);
@@ -75,38 +111,30 @@ var Web3Indexer = class {
       this.provider = provider;
     }
     this.db = (0, import_redis.createClient)(redisConfig);
-    this.db.on("error", (err) => console.log("Redis Client Error", err));
+    this.db.on("error", (err) => this.log("Redis Client Error", err));
     this.db.connect();
-    this.server = (0, import_express.default)();
-    this.server.use((0, import_cors.default)({ origin: corsOrigin }));
+    this.api = new Web3IndexerApi({ corsOrigin, port });
   }
   log(...args) {
     if (this.debug) {
       console.log(...args);
     }
   }
-  contract(address, abi, callback) {
-    const contract = new import_ethers.Contract(address, abi, this.provider);
+  contract(address, abi) {
+    const contract = new Web3IndexerContract(address, abi, this.provider, this.db);
     this.contracts.push(contract);
-    callback(contract);
-  }
-  graphql(schema, resolvers) {
-    this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
-      schema,
-      rootValue: resolvers,
-      graphiql: true
-    }));
+    return contract;
   }
   replay() {
     this.contracts.forEach((contract) => __async(this, null, function* () {
-      contract.interface.forEachEvent((event) => __async(this, null, function* () {
+      contract.instance.interface.forEachEvent((event) => __async(this, null, function* () {
         const eventName = event.name;
-        const listeners = yield contract.listeners(eventName);
+        const listeners = yield contract.instance.listeners(eventName);
         listeners.forEach(() => __async(this, null, function* () {
-          const pastEvents = yield contract.queryFilter(eventName);
+          const pastEvents = yield contract.instance.queryFilter(eventName);
           pastEvents.forEach((pastEvent) => __async(this, null, function* () {
-            const decodedEventData = contract.interface.decodeEventLog(eventName, pastEvent.data, pastEvent.topics);
-            contract.emit(
+            const decodedEventData = contract.instance.interface.decodeEventLog(eventName, pastEvent.data, pastEvent.topics);
+            contract.instance.emit(
               eventName,
               ...decodedEventData
             );
@@ -114,17 +142,6 @@ var Web3Indexer = class {
         }));
       }));
     }));
-  }
-  start() {
-    this.server.listen(this.port, () => {
-      console.log(`Listening on http://localhost:${this.port}`);
-      console.log("\nRoutes:");
-      this.server._router.stack.forEach((middleware) => {
-        if (middleware.route) {
-          console.log(`GET ${middleware.route.path}`);
-        }
-      });
-    });
   }
 };
 // Annotate the CommonJS export names for ESM import in node:

@@ -9,13 +9,10 @@ if (!process.env.PROVIDER_URL) throw new Error('PROVIDER_URL env variable is req
 
 const indexer = new Web3Indexer({ provider: process.env.PROVIDER_URL });
 
-indexer.contract(CONTRACT.address, CONTRACT.abi, (contract) => {
-  contract.on("Transfer", TransferListener(indexer.db));
-});
+const contract = indexer.contract(CONTRACT.address, CONTRACT.abi)
+contract.store("Transfer", TransferListener);
 
-indexer.server.get('/transfers', TransfersEndpoint(indexer.db));
-
-indexer.graphql(schema, resolvers(indexer.db));
+indexer.api.get('/transfers', TransfersEndpoint(indexer.db));
+indexer.api.graphql(schema, resolvers(indexer.db));
 
 indexer.replay();
-indexer.start();
