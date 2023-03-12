@@ -18,7 +18,10 @@ const numberFormatter = new Intl.NumberFormat("en-US", {
 const repoComits = ref<{
   commitCount: number;
   linesChanged: number;
-  commitsByAuthor: Record<string, { commitCount: number; linesChanged: number }>;
+  commitsByAuthor: Record<
+    string,
+    { commitCount: number; linesChanged: number }
+  >;
   commitsByDay: Record<string, { commitCount: number; linesChanged: number }>;
   commitsByDayNormalized: {
     commitCount: number[];
@@ -31,21 +34,25 @@ const now = new Date();
 const oneMonthAgo = new Date();
 oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-watch(() => props.name, async () => {
-  loadingData.value = true;
-  try {
-    repoComits.value = await githubInsights.scanRepoCommits(
-      props.owner,
-      props.name,
-      oneMonthAgo,
-      now
-    );
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loadingData.value = false;
-  }
-}, { immediate: true });
+watch(
+  () => props.name,
+  async () => {
+    loadingData.value = true;
+    try {
+      repoComits.value = await githubInsights.scanRepoCommits(
+        props.owner,
+        props.name,
+        oneMonthAgo,
+        now
+      );
+    } catch (error) {
+      console.error(error);
+    } finally {
+      loadingData.value = false;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
@@ -86,10 +93,7 @@ watch(() => props.name, async () => {
         <TeamCardScores />
       </div>
     </div>
-    <div
-      v-else
-      class="text-gray-500 animate-pulse border rounded-lg px-3 py-1"
-    >
+    <div v-else class="text-gray-500 animate-pulse border rounded-lg px-3 py-1">
       scanning repo...
     </div>
   </div>

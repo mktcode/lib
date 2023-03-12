@@ -29,12 +29,14 @@ function scan() {
         class="border rounded-lg p-3"
         placeholder="e.g. octocat or octokit/octokit.js"
       />
-      <button @click="scan" class="border rounded-lg p-3">
-        Scan
-      </button>
+      <button @click="scan" class="border rounded-lg p-3">Scan</button>
     </div>
     <Transition mode="out-in">
-      <TeamCard v-if="userName && repoName" :owner="userName" :name="repoName" />
+      <TeamCard
+        v-if="userName && repoName"
+        :owner="userName"
+        :name="repoName"
+      />
       <UserCard v-else-if="userName" :name="userName" />
     </Transition>
   </main>

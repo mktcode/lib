@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch } from "vue";
 import { githubInsights } from "../lib/githubInsights";
 
 const props = defineProps<{
@@ -18,23 +18,29 @@ const user = ref<{
   mergedPullRequestCount30d: number;
 }>();
 
-watch(() => props.name, async () => {
-  loadingData.value = true;
-  try {
-    user.value = await githubInsights.scanUser(props.name);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    loadingData.value = false;
-  }
-}, { immediate: true });
+watch(
+  () => props.name,
+  async () => {
+    loadingData.value = true;
+    try {
+      user.value = await githubInsights.scanUser(props.name);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      loadingData.value = false;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <div class="border rounded-lg p-3">
     <div v-if="user && !loadingData">
-      <h1 class="text-3xl font-bold underline mb-10">Hello {{ props.name }}!</h1>
-  
+      <h1 class="text-3xl font-bold underline mb-10">
+        Hello {{ props.name }}!
+      </h1>
+
       <div class="max-w-sm text-center">
         <p>
           Your repositories have received
@@ -42,7 +48,7 @@ watch(() => props.name, async () => {
           have been forked
           <span class="font-bold">{{ user.forkCount }}</span> times.
         </p>
-  
+
         <p>
           Your followers' repositories have received
           <span class="font-bold">{{ user.followersStargazerCount }}</span>
@@ -51,7 +57,7 @@ watch(() => props.name, async () => {
           <span class="font-bold">{{ user.followersFollowerCount }}</span>
           people follow your followers.
         </p>
-  
+
         <p>
           You contributed
           <span class="font-bold">{{ user.mergedPullRequestCount }}</span>
@@ -64,10 +70,7 @@ watch(() => props.name, async () => {
       </div>
     </div>
 
-    <div
-      v-else
-      class="text-gray-500 animate-pulse border rounded-lg px-3 py-1"
-    >
+    <div v-else class="text-gray-500 animate-pulse border rounded-lg px-3 py-1">
       scanning user...
     </div>
   </div>

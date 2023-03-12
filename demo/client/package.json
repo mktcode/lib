@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@heroicons/vue": "^2.0.16",
-    "@mktcodelib/github-insights": "workspace:^0.2.1",
+    "@mktcodelib/github-insights": "workspace:^0.4.1",
     "@octokit/graphql": "^5.0.5",
     "chart.js": "^4.2.1",
     "isomorphic-fetch": "^3.0.0",
