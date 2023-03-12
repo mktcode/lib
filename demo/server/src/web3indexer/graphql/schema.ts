@@ -3,6 +3,7 @@ import gql from "graphql-tag";
 
 const ast = gql`
 type Transfer {
+  id: String!
   from: String
   to: String
   tokenId: String
@@ -10,6 +11,7 @@ type Transfer {
 
 type Query {
   transfers: [Transfer!]
+  transfer(id: String!): Transfer
 }
 `;
 

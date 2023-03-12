@@ -15,4 +15,5 @@ contract.store("Transfer", TransferListener);
 indexer.api.get('/transfers', TransfersEndpoint);
 indexer.api.graphql(schema, resolvers);
 
+
 indexer.replay();
