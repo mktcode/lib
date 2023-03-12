@@ -31,15 +31,17 @@ UI components to build and sign transactions for EVMs.
 ```bash
 git clone https://github.com/mktcode/lib
 cd lib
-pnpm install
+pnpm install --shamefully-hoist
 pnpm all
 ```
+
+<sup>`--shamefully-hoist` is still required: See https://github.com/nuxt/nuxt/issues/14146</sup>
 
 ### Demo
 
 The demo directory contains apps (client and server) to demonstrate the usage of the packages.
 
 ```bash
-pnpm client:dev
+pnpm client:start
 pnpm server:start
 ```
