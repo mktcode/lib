@@ -1,7 +1,7 @@
-import express, { Application, Request, Response } from 'express';
+import express, { Application, NextFunction, Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import { createClient } from 'redis';
-import { Contract, InterfaceAbi, JsonRpcProvider } from 'ethers';
+import { Contract, InterfaceAbi, JsonRpcProvider, verifyMessage } from 'ethers';
 import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'graphql';
 
@@ -30,6 +30,7 @@ class Web3IndexerApi {
 
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }))
+    this.server.use(this.getEOASigner)
     this.server.listen(port, () => {
       console.log(`Listening on http://localhost:${port}`)
       console.log('\nRoutes:');
@@ -64,6 +65,17 @@ class Web3IndexerApi {
       rootValue: resolvers(this.db),
       graphiql: true,
     }));
+  }
+
+  private async getEOASigner(req: Request, _res: Response, next: NextFunction) {
+    const signature = req.header('EOA-Signature');
+
+    if (signature) {
+      const signer = verifyMessage(req.body, signature);
+      req.headers['EOA-Signer'] = signer;
+    }
+
+    next();
   }
 }
 

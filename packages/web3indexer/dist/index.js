@@ -86,6 +86,16 @@ var Web3IndexerApi = class {
       graphiql: true
     }));
   }
+  paymentGateway(address) {
+    this.server.use((req, res, next) => {
+      const signature = req.header("Payment-Signature");
+      console.log(signature);
+      if (!signature) {
+        return res.status(401).json({ message: "Signature is missing" });
+      }
+      next();
+    });
+  }
 };
 var Web3IndexerContract = class {
   constructor(address, abi, provider, db) {
