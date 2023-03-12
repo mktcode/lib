@@ -53,13 +53,15 @@ importers:
     specifiers:
       '@mktcodelib/good-first-web3-issues': workspace:^0.8.3
       '@mktcodelib/web3indexer': workspace:^0.1.1
-      ethers: ^6.0.8
+      ethers: ^6.1.0
       graphql: ^16.6.0
+      graphql-tag: ^2.12.6
     dependencies:
       '@mktcodelib/good-first-web3-issues': link:../../packages/good-first-web3-issues
       '@mktcodelib/web3indexer': link:../../packages/web3indexer
-      ethers: 6.0.8
+      ethers: 6.1.0
       graphql: 16.6.0
+      graphql-tag: 2.12.6_graphql@16.6.0
 
   packages/github-insights:
     specifiers:
@@ -123,7 +125,7 @@ importers:
       '@types/express': ^4.17.17
       body-parser: ^1.20.2
       cors: ^2.8.5
-      ethers: ^6.0.8
+      ethers: ^6.1.0
       express: ^4.18.2
       express-graphql: ^0.12.0
       graphql: ^16.6.0
@@ -131,7 +133,7 @@ importers:
     dependencies:
       body-parser: 1.20.2
       cors: 2.8.5
-      ethers: 6.0.8
+      ethers: 6.1.0
       express: 4.18.2
       express-graphql: 0.12.0_graphql@16.6.0
       graphql: 16.6.0
@@ -4402,8 +4404,8 @@ packages:
     resolution: {integrity: sha512-aIL5Fx7mawVa300al2BnEE4iNvo1qETxLrPI/o05L7z6go7fCw1J6EQmbK4FmJ2AS7kgVF/KEZWufBfdClMcPg==}
     engines: {node: '>= 0.6'}
 
-  /ethers/6.0.8:
-    resolution: {integrity: sha512-j5smdMwn4t4vEARcfUv54mTJ2NMCorYLL51wPjFInEnrRr2SF5Sl9a7Z4DXS8UO1fBJVGHnjDDrF1b7msY3f7Q==}
+  /ethers/6.1.0:
+    resolution: {integrity: sha512-aC45YGbvgXt7Nses5WsdQwc1cUIrrQt32zeFShNW7ZT3RQCIHBnd4nmbE5sJmrp70uTdwkRHkr4cZr1D/YwFPg==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@adraffy/ens-normalize': 1.8.9
