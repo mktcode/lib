@@ -24,7 +24,7 @@ declare class Web3IndexerApi {
     get(path: string, handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void): void;
     post(path: string, handler: (db: Web3IndexerDB) => (req: Request, res: Response) => void): void;
     graphql(schema: ReturnType<typeof buildSchema>, resolvers: (db: Web3IndexerDB) => Record<string, any>): void;
-    paymentGateway(address: string): void;
+    private getEOASigner;
 }
 declare class Web3IndexerContract {
     instance: Contract;

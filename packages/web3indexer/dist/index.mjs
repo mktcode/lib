@@ -23,19 +23,20 @@ var __async = (__this, __arguments, generator) => {
 import express from "express";
 import cors from "cors";
 import { createClient } from "redis";
-import { Contract, JsonRpcProvider } from "ethers";
+import { Contract, JsonRpcProvider, verifyMessage } from "ethers";
 import { graphqlHTTP } from "express-graphql";
 var Web3IndexerApi = class {
   constructor({ corsOrigin, port, db }) {
     this.db = db;
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }));
+    this.server.use(this.getEOASigner);
     this.server.listen(port, () => {
       console.log(`Listening on http://localhost:${port}`);
       console.log("\nRoutes:");
       this.server._router.stack.forEach((middleware) => {
         if (middleware.route) {
-          console.log(`GET ${middleware.route.path}`);
+          console.log(middleware.route.methods.post ? "POST" : "GET", middleware.route.path);
         }
       });
     });
@@ -53,12 +54,12 @@ var Web3IndexerApi = class {
       graphiql: true
     }));
   }
-  paymentGateway(address) {
-    this.server.use((req, res, next) => {
-      const signature = req.header("Payment-Signature");
-      console.log(signature);
-      if (!signature) {
-        return res.status(401).json({ message: "Signature is missing" });
+  getEOASigner(req, _res, next) {
+    return __async(this, null, function* () {
+      const signature = req.header("EOA-Signature");
+      if (signature) {
+        const signer = verifyMessage(req.body, signature);
+        req.headers["EOA-Signer"] = signer;
       }
       next();
     });
