@@ -7,8 +7,12 @@ import { resolvers } from './graphql/resolvers';
 import CONTRACT from './listeners/CONTRACT.json';
 
 if (!process.env.PROVIDER_URL) throw new Error('No PROVIDER_URL provided.');
+if (!process.env.PORT) throw new Error('No PORT provided.');
 
-const indexer = new Web3Indexer({ provider: process.env.PROVIDER_URL });
+const indexer = new Web3Indexer({
+  provider: process.env.PROVIDER_URL,
+  port: process.env.PORT
+});
 
 const contract = indexer.contract(CONTRACT.address, CONTRACT.abi);
 contract.store("Unlock", UnlockListener);

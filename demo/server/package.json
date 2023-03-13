@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@mktcodelib/good-first-web3-issues": "workspace:^0.8.3",
-    "@mktcodelib/web3indexer": "workspace:^0.2.0",
+    "@mktcodelib/web3indexer": "workspace:^0.2.2",
     "ethers": "^6.1.0",
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6"
