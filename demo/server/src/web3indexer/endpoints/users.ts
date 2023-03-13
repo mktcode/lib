@@ -1,8 +1,8 @@
 import { Web3IndexerDB } from "@mktcodelib/web3indexer";
 
-export function TransfersEndpoint(db: Web3IndexerDB) {
+export function UsersEndpoint(db: Web3IndexerDB) {
   return async (_req: any, res: any) => {
-    const cached = await db.hGetAll('Transfer');
+    const cached = await db.hGetAll('users');
   
     if (cached) {
       Object.keys(cached).forEach((key) => {

@@ -2,16 +2,15 @@ import { buildASTSchema } from "graphql";
 import gql from "graphql-tag";
 
 const ast = gql`
-type Transfer {
-  id: String!
-  from: String
-  to: String
-  tokenId: String
+type User {
+  address: String!
+  amountPaid: String!
+  indexedAt: String!
 }
 
 type Query {
-  transfers: [Transfer!]
-  transfer(id: String!): Transfer
+  users: [User!]
+  user(address: String!): User
 }
 `;
 
