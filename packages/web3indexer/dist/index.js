@@ -125,6 +125,7 @@ var Web3Indexer = class {
     this.db = (0, import_redis.createClient)(redisConfig);
     this.db.on("error", (err) => this.log("Redis Client Error", err));
     this.db.connect();
+    port = typeof port === "string" ? parseInt(port) : port;
     this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
   }
   log(...args) {

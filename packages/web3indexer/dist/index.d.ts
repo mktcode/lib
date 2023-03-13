@@ -15,7 +15,7 @@ type Options = {
     redisConfig?: Record<string, any>;
     debug?: boolean;
     corsOrigin?: CorsOptions['origin'];
-    port?: number;
+    port?: number | string;
 };
 declare class Web3IndexerApi {
     server: Application;

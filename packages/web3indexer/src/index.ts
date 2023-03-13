@@ -18,7 +18,7 @@ type Options = {
   redisConfig?: Record<string, any>;
   debug?: boolean;
   corsOrigin?: CorsOptions['origin'];
-  port?: number;
+  port?: number | string;
 }
 
 class Web3IndexerApi {
@@ -125,6 +125,7 @@ export class Web3Indexer {
     this.db.on('error', (err: any) => this.log('Redis Client Error', err));
     this.db.connect();
 
+    port = typeof port === 'string' ? parseInt(port) : port;
     this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
   }
 
