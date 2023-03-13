@@ -28,14 +28,14 @@ onMounted(async () => {
         }
       })
       gettingUserData.value = false
-      router.push('/')
+      router.push('/github')
     }
   }
 })
 </script>
 
 <template>
-  <div>
+  <div class="pt-24 flex justify-center items-center">
     <div v-if="gettingAccessToken">Getting access token...</div>
     <div v-else-if="gettingUserData">Getting user data...</div>
   </div>

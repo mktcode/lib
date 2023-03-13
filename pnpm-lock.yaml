@@ -33,6 +33,7 @@ importers:
       '@mktcodelib/github-insights': workspace:^0.4.1
       autoprefixer: ^10.4.13
       chart.js: ^4.2.1
+      ethers: ^6.1.0
       isomorphic-fetch: ^3.0.0
       nuxt: ^3.2.3
       postcss: ^8.4.21
@@ -41,6 +42,7 @@ importers:
     dependencies:
       '@mktcodelib/github-insights': link:../../packages/github-insights
       chart.js: 4.2.1
+      ethers: 6.1.0
       isomorphic-fetch: 3.0.0
       vue-chartjs: 5.2.0_chart.js@4.2.1
     devDependencies:

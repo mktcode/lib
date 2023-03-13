@@ -9,6 +9,8 @@ export function ChatEndpoint(db: Web3IndexerDB) {
       return;
     }
 
+    console.log("ChatEndpoint", signerAddress, req.params.message)
+
     const userJson = await db.hGet('users', signerAddress);
     const user = userJson ? JSON.parse(userJson) : null;
 

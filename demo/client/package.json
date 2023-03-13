@@ -17,6 +17,7 @@
   "dependencies": {
     "@mktcodelib/github-insights": "workspace:^0.4.1",
     "chart.js": "^4.2.1",
+    "ethers": "^6.1.0",
     "isomorphic-fetch": "^3.0.0",
     "vue-chartjs": "^5.2.0"
   }

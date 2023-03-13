@@ -11,7 +11,8 @@ if (!process.env.PORT) throw new Error('No PORT provided.');
 
 const indexer = new Web3Indexer({
   provider: process.env.PROVIDER_URL,
-  port: process.env.PORT
+  port: process.env.PORT,
+  corsOrigin: '*',
 });
 
 const contract = indexer.contract(CONTRACT.address, CONTRACT.abi);

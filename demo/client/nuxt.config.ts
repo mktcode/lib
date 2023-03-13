@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     clientSecret: process.env.NUXT_CLIENT_SECRET,
     public: {
       clientId: process.env.NUXT_CLIENT_ID,
+      web3IndexerUrl: process.env.NUXT_WEB3_INDEXER_URL,
     }
   },
   vite: {
