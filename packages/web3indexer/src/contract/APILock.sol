@@ -18,6 +18,7 @@ contract APILock {
     if (unlocked[msg.sender]) revert ErrorMessage("Already unlocked");
     if (msg.value < fee) revert ErrorMessage("Insufficient funds");
 
+    owner.transfer(msg.value);
     unlocked[msg.sender] = true;
 
     emit Unlock(msg.sender, msg.value);
