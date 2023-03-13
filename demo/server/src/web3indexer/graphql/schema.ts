@@ -4,6 +4,7 @@ import gql from "graphql-tag";
 const ast = gql`
 type User {
   address: String!
+  unlocked: Boolean!
   amountPaid: String!
   indexedAt: String!
 }
