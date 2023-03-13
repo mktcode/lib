@@ -8,6 +8,7 @@ import CONTRACT from './listeners/CONTRACT.json';
 
 if (!process.env.PROVIDER_URL) throw new Error('No PROVIDER_URL provided.');
 if (!process.env.PORT) throw new Error('No PORT provided.');
+if (!process.env.OPENAI_API_KEY) throw new Error('No OPENAI_API_KEY provided.');
 
 const indexer = new Web3Indexer({
   provider: process.env.PROVIDER_URL,
