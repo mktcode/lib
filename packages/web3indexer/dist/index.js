@@ -90,8 +90,9 @@ var Web3IndexerApi = class {
   getEOASigner(req, _res, next) {
     return __async(this, null, function* () {
       const signature = req.header("EOA-Signature");
-      if (signature) {
-        const signer = (0, import_ethers.verifyMessage)(req.body, signature);
+      const message = req.header("EOA-Signed-Message");
+      if (signature && message) {
+        const signer = (0, import_ethers.verifyMessage)(message, signature);
         req.headers["EOA-Signer"] = signer;
       }
       next();

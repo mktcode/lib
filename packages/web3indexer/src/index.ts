@@ -69,9 +69,10 @@ class Web3IndexerApi {
 
   private async getEOASigner(req: Request, _res: Response, next: NextFunction) {
     const signature = req.header('EOA-Signature');
+    const message = req.header('EOA-Signed-Message');
 
-    if (signature) {
-      const signer = verifyMessage(req.body, signature);
+    if (signature && message) {
+      const signer = verifyMessage(message, signature);
       req.headers['EOA-Signer'] = signer;
     }
 
