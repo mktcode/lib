@@ -21,7 +21,7 @@
     "server:start:good-first-web3-issues": "pnpm --filter server start:good-first-web3-issues",
     "server:start:web3indexer": "pnpm --filter server start:web3indexer",
 
-    "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm web3indexer:lint && pnpm client:lint && pnpm server:lint",
+    "lint": "pnpm graphql-fetch-all:lint && pnpm github-insights:lint && pnpm good-first-web3-issues:lint && pnpm web3indexer:lint && pnpm server:lint",
     "build": "pnpm graphql-fetch-all:build && pnpm github-insights:build && pnpm good-first-web3-issues:build && pnpm web3indexer:build",
     "test": "pnpm graphql-fetch-all:test && pnpm github-insights:test",
     

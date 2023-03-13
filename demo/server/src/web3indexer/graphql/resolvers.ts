@@ -17,4 +17,4 @@ export function resolvers(db: Web3IndexerDB) {
       return Object.keys(cached).map((address) => JSON.parse(cached[address]!));
     },
   }
-};
+}

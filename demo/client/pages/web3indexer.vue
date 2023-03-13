@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BrowserProvider, parseEther } from 'ethers'
+import { BrowserProvider, keccak256, parseEther, toUtf8Bytes } from 'ethers'
 import CONTRACT from '../../server/src/web3indexer/listeners/CONTRACT.json'
 
 const { public: { web3IndexerUrl } } = useRuntimeConfig()
@@ -11,6 +11,11 @@ type UserInfo = {
   unlocked: boolean
   amountPaid: number
   indexedAt: number
+}
+
+type ChatResponse = {
+  role: string
+  content: string
 }
 
 const userInfo = ref<UserInfo>({
@@ -71,6 +76,8 @@ async function unlock() {
 }
 
 const message = ref('');
+const messageBase64 = computed(() => btoa(message.value));
+const hashedMessage = computed(() => keccak256(toUtf8Bytes(message.value)));
 const chatResponse = ref('');
 const waitingForResponse = ref(false);
 
@@ -82,14 +89,15 @@ async function sendMessage() {
   try {
     const provider = new BrowserProvider(window.ethereum)
     const signer = await provider.getSigner();
-    const signature = await signer.signMessage(message.value)
+    const signature = await signer.signMessage(hashedMessage.value)
   
-    chatResponse.value = await $fetch(`${web3IndexerUrl}/chat/${message.value}`, {
+    const response = await $fetch<ChatResponse>(`${web3IndexerUrl}/chat/${messageBase64.value}`, {
       headers: {
         'EOA-Signature': signature,
-        'EOA-Signed-Message': message.value,
+        'EOA-Signed-Message': hashedMessage.value,
       },
     })
+    chatResponse.value = response.content
   } catch (e) {
     console.error(e)
   } finally {
@@ -115,17 +123,21 @@ async function sendMessage() {
       </div>
     </div>
     <div v-if="unlocking" class="text-center">
-      Unlocking...
+      <LoadingSpinner class="w-6 h-6 text-gray-300" /> Unlocking...
     </div>
-    <div v-else-if="userInfo.unlocked" class="text-center">
-      <div>Chat endpoint unlocked!</div>
-      <div>
-        <input type="text" v-model="message" class="border border-gray-300 rounded p-2" />
-      </div>
-      <button @click="sendMessage" class="bg-blue-500 text-white rounded p-2">Send</button>
-      <div>
-        <div v-if="waitingForResponse">Waiting for response...</div>
-        <div v-else-if="chatResponse">Response: {{ chatResponse }}</div>
+    <div v-else-if="userInfo.unlocked" class="text-center max-w-lg">
+      <div class="text-lg font-bold mb-3">Chat endpoint unlocked!</div>
+      <input type="text" v-model="message" class="border border-gray-300 rounded p-2 w-full" />
+      <button @click="sendMessage" class="bg-blue-500 text-white rounded p-2 mt-1 w-full">Send</button>
+      <div class="border border-gray-300 rounded p-2 mt-5">
+        <div v-if="waitingForResponse" class="flex justify-center">
+          <LoadingSpinner class="w-6 h-6 text-gray-300" />
+          Waiting for response...
+        </div>
+        <div v-else-if="chatResponse" v-html="chatResponse" />
+        <div v-else class="text-center text-gray-300">
+          response
+        </div>
       </div>
     </div>
     <div v-else class="text-center">

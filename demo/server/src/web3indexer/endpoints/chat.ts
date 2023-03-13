@@ -1,4 +1,12 @@
 import { Web3IndexerDB } from "@mktcodelib/web3indexer";
+import { keccak256, toUtf8Bytes } from "ethers";
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY,
+  organization: process.env.OPENAI_ORGANIZATION,
+});
+const openai = new OpenAIApi(configuration);
 
 export function ChatEndpoint(db: Web3IndexerDB) {
   return async (req: any, res: any) => {
@@ -9,15 +17,37 @@ export function ChatEndpoint(db: Web3IndexerDB) {
       return;
     }
 
-    console.log("ChatEndpoint", signerAddress, req.params.message)
-
     const userJson = await db.hGet('users', signerAddress);
     const user = userJson ? JSON.parse(userJson) : null;
 
     if (!user || !user.unlocked) {
       res.status(401).send("Unauthorized. You need to send 0.1 ETH to unlock this endpoint.");
-    } else {
-      res.send(req.params.message);
+      return;
+    }
+
+    const message = Buffer.from(req.params.message, 'base64').toString('utf-8');
+    const hashedMessage = keccak256(toUtf8Bytes(message));
+
+    if (hashedMessage != req.header('EOA-Signed-Message')) {
+      res.status(401).send("Unauthorized. Message signature is invalid.");
+      return;
+    }
+
+    try {
+      console.log("Waiting for response from OpenAI...")
+
+      const completion = await openai.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages: [{role: "user", content: `${message}\n\n(Add a random fun-fact for programmers. Start with "Oh and by the way, did you know...")`}],
+      });
+
+      const response = completion.data.choices[0]?.message || "Oh no. An erro occured. Please try again later.";
+      console.log("Response received!")
+
+      res.send(response);
+    } catch (e: any) {
+      console.log("Error", e.response.statusText)
+      res.status(500).send('Error');
     }
   }
 }
