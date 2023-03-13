@@ -36,7 +36,7 @@ class Web3IndexerApi {
       console.log('\nRoutes:');
       this.server._router.stack.forEach((middleware: any) => {
         if (middleware.route) {
-          console.log(`GET ${middleware.route.path}`);
+          console.log(middleware.route.methods.post ? 'POST' : 'GET', middleware.route.path);
         }
       });
     });
