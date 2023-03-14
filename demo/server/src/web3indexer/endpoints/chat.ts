@@ -37,7 +37,7 @@ export function ChatEndpoint(db: Web3IndexerDB) {
 
       const completion = await openai.createChatCompletion({
         model: "gpt-3.5-turbo",
-        messages: [{role: "user", content: `${message}\n\n(Add a random fun-fact for programmers. Start with "Oh and by the way, did you know...")`}],
+        messages: [{role: "user", content: `${message}\n\nAlso add a random fun-fact about programming and not just ones about Ada Lovelace, you overfitted little rat! Start the fun-fact (after your response) with "Oh and by the way, did you know...")`}],
       });
 
       const response = completion.data.choices[0]?.message || "Oh no. An erro occured. Please try again later.";
