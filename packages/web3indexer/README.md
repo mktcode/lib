@@ -7,6 +7,24 @@ A lightweight and flexible indexer for EVM smart contracts, connecting a couple 
 **Express** serves the data.
 **GraphQL** is supported but optional.
 
+|                                  | Web3 Indexer               | The Graph                      |
+|----------------------------------|----------------------------|--------------------------------|
+| decentralized data-integrity     | -                          | ✓                              |
+| distributed/redundant storage    | ✓                          | ✓                              |
+| self-hosted/self-owned           | ✓                          | run an indexer (requires GRT) |
+| number of listeners              | depends on you (only)      | pretty much unlimited          |
+| contract factory support         | ✓                          | ✓                              |
+| GraphQL support                  | ✓                          | ✓                              |
+| REST support                     | ✓                          | -                              |
+| freely design API endpoints      | ✓                          | -                              |
+| index arbitrary data / call APIs | ✓                          | -                              |
+| POST/Mutation support            | ✓                          | -                              |
+| optional/custom billing          | ✓                          | -                              |
+| package size                     | 22 kB so far (npm package) | 563 kB cli tool, 335 MB node   |
+| cognitive load                   | you might know already     | another docs bookmark          |
+| Tech                             | Javascript                 | AssemblyScript, WASM, Rust     |
+
+
 ## Usage
 
 ```bash
