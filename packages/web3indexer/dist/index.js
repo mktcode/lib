@@ -75,15 +75,15 @@ var Web3IndexerApi = class {
     });
   }
   get(path, handler) {
-    this.server.get(path, handler(this.db));
+    this.server.get(path, handler);
   }
   post(path, handler) {
-    this.server.post(path, handler(this.db));
+    this.server.post(path, handler);
   }
   graphql(schema, resolvers) {
     this.server.use("/graphql", (0, import_express_graphql.graphqlHTTP)({
       schema,
-      rootValue: resolvers(this.db),
+      rootValue: resolvers,
       graphiql: true
     }));
   }
@@ -99,22 +99,16 @@ var Web3IndexerApi = class {
     });
   }
 };
-var Web3IndexerContract = class {
-  constructor(address, abi, provider, db) {
-    this.instance = new import_ethers.Contract(address, abi, provider);
-    this.db = db;
-  }
-  store(event, listener) {
-    this.instance.on(event, listener(this.db));
-  }
-};
 var Web3Indexer = class {
   constructor({
     provider,
     redisConfig = {},
     corsOrigin = /localhost$/,
     port = 3e3,
-    debug = false
+    debug = false,
+    listeners = {},
+    endpoints = {},
+    graphql
   }) {
     this.contracts = [];
     this.debug = debug;
@@ -128,6 +122,47 @@ var Web3Indexer = class {
     this.db.connect();
     port = typeof port === "string" ? parseInt(port) : port;
     this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
+    this.registerListeners(listeners);
+    this.registerEndpoints(endpoints);
+    if (graphql) {
+      this.registerGraphQL(graphql);
+    }
+  }
+  registerListeners(listeners) {
+    const networks = Object.keys(listeners);
+    networks.forEach((network) => {
+      const contracts = Object.keys(listeners[network]);
+      contracts.forEach((contractAddress) => {
+        const contract = listeners[network][contractAddress];
+        const events = Object.keys(contract.listeners);
+        events.forEach((event) => {
+          const listener = contract.listeners[event];
+          this.contract(contractAddress, contract.abi).on(event, listener(this));
+        });
+      });
+    });
+  }
+  registerEndpoints(endpoints) {
+    const requestRegex = /^(GET|POST) (\/.*)/;
+    const requests = Object.keys(endpoints);
+    requests.forEach((requestString) => {
+      const request = requestString.match(requestRegex);
+      if (!request) {
+        throw new Error(`Invalid endpoint ${requestString}`);
+      }
+      const [_, method, path] = request;
+      const endpoint = endpoints[requestString];
+      if (method === "GET") {
+        this.api.get(path, endpoint(this));
+      } else if (method === "POST") {
+        this.api.post(path, endpoint(this));
+      }
+    });
+  }
+  registerGraphQL(graphql) {
+    if (graphql) {
+      this.api.graphql(graphql.schema, graphql.resolvers(this));
+    }
   }
   log(...args) {
     if (this.debug) {
@@ -135,20 +170,20 @@ var Web3Indexer = class {
     }
   }
   contract(address, abi) {
-    const contract = new Web3IndexerContract(address, abi, this.provider, this.db);
+    const contract = new import_ethers.Contract(address, abi, this.provider);
     this.contracts.push(contract);
     return contract;
   }
   replay() {
     this.contracts.forEach((contract) => __async(this, null, function* () {
-      contract.instance.interface.forEachEvent((event) => __async(this, null, function* () {
+      contract.interface.forEachEvent((event) => __async(this, null, function* () {
         const eventName = event.name;
-        const listeners = yield contract.instance.listeners(eventName);
+        const listeners = yield contract.listeners(eventName);
         listeners.forEach(() => __async(this, null, function* () {
-          const pastEvents = yield contract.instance.queryFilter(eventName);
+          const pastEvents = yield contract.queryFilter(eventName);
           pastEvents.forEach((pastEvent) => __async(this, null, function* () {
-            const decodedEventData = contract.instance.interface.decodeEventLog(eventName, pastEvent.data, pastEvent.topics);
-            contract.instance.emit(
+            const decodedEventData = contract.interface.decodeEventLog(eventName, pastEvent.data, pastEvent.topics);
+            contract.emit(
               eventName,
               ...decodedEventData
             );

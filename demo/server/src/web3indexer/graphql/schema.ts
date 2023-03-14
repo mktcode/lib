@@ -15,4 +15,4 @@ type Query {
 }
 `;
 
-export const schema = buildASTSchema(ast);
+export default buildASTSchema(ast);

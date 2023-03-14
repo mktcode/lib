@@ -1,10 +1,7 @@
 import { Web3Indexer } from '@mktcodelib/web3indexer';
-import { UnlockListener } from './listeners/Unlock';
-import { UsersEndpoint } from './endpoints/users';
-import { ChatEndpoint } from './endpoints/chat';
-import { schema } from './graphql/schema';
-import { resolvers } from './graphql/resolvers';
-import CONTRACT from './listeners/CONTRACT.json';
+import listeners from './listeners';
+import endpoints from './endpoints';
+import graphql from './graphql';
 
 if (!process.env.PROVIDER_URL) throw new Error('No PROVIDER_URL provided.');
 if (!process.env.PORT) throw new Error('No PORT provided.');
@@ -12,15 +9,9 @@ if (!process.env.OPENAI_API_KEY) throw new Error('No OPENAI_API_KEY provided.');
 
 const indexer = new Web3Indexer({
   provider: process.env.PROVIDER_URL,
-  port: process.env.PORT,
-  corsOrigin: '*',
+  listeners,
+  endpoints,
+  graphql,
 });
-
-const contract = indexer.contract(CONTRACT.address, CONTRACT.abi);
-contract.store("Unlock", UnlockListener);
-
-indexer.api.get('/users', UsersEndpoint);
-indexer.api.get('/chat/:message', ChatEndpoint);
-indexer.api.graphql(schema, resolvers);
 
 indexer.replay();
