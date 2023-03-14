@@ -27,7 +27,7 @@ It's of course not a valid comparison and you can absolutely see this really jus
 | decentralized data-integrity     | -                          | ✓                              |
 | distributed/redundant storage    | ✓                          | ✓                              |
 | self-hosted/self-owned           | ✓                          | run an indexer? (requires GRT) |
-| number of listeners              | depends on you             | unlimited                      |
+| number of listeners              | depends on you (only)      | pretty much unlimited          |
 | contract factory support         | ✓                          | ✓                              |
 | GraphQL support                  | ✓                          | ✓                              |
 | REST support                     | ✓                          | -                              |
