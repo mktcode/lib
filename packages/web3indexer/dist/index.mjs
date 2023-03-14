@@ -20,10 +20,10 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
+import ethers from "ethers";
 import express from "express";
 import cors from "cors";
 import { createClient } from "redis";
-import { Contract, JsonRpcProvider, verifyMessage } from "ethers";
 import { graphqlHTTP } from "express-graphql";
 var Web3IndexerApi = class {
   constructor({ corsOrigin, port, db }) {
@@ -59,7 +59,7 @@ var Web3IndexerApi = class {
       const signature = req.header("EOA-Signature");
       const message = req.header("EOA-Signed-Message");
       if (signature && message) {
-        const signer = verifyMessage(message, signature);
+        const signer = ethers.verifyMessage(message, signature);
         req.headers["EOA-Signer"] = signer;
       }
       next();
@@ -77,10 +77,11 @@ var Web3Indexer = class {
     endpoints = {},
     graphql
   }) {
+    this.ethers = ethers;
     this.contracts = [];
     this.debug = debug;
     if (typeof provider === "string") {
-      this.provider = new JsonRpcProvider(provider);
+      this.provider = new ethers.JsonRpcProvider(provider);
     } else {
       this.provider = provider;
     }
@@ -137,7 +138,7 @@ var Web3Indexer = class {
     }
   }
   contract(address, abi) {
-    const contract = new Contract(address, abi, this.provider);
+    const contract = new ethers.Contract(address, abi, this.provider);
     this.contracts.push(contract);
     return contract;
   }

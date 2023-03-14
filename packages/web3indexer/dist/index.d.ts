@@ -1,7 +1,7 @@
+import ethers from 'ethers';
 import { Request, Response, Application } from 'express';
 import { CorsOptions } from 'cors';
 import { createClient } from 'redis';
-import { InterfaceAbi, Contract, JsonRpcProvider } from 'ethers';
 import { buildSchema } from 'graphql';
 
 type Web3IndexerDB = ReturnType<typeof createClient>;
@@ -13,7 +13,7 @@ type ApiOptions = {
 type Listeners = {
     [network: string]: {
         [contract: string]: {
-            abi: InterfaceAbi;
+            abi: ethers.InterfaceAbi;
             listeners: {
                 [event: string]: (indexer: Web3Indexer) => (...args: any[]) => Promise<void>;
             };
@@ -28,7 +28,7 @@ type GraphQL = {
     resolvers: (indexer: Web3Indexer) => Record<string, any>;
 };
 type Options = {
-    provider: string | JsonRpcProvider;
+    provider: string | ethers.JsonRpcProvider;
     redisConfig?: Record<string, any>;
     debug?: boolean;
     corsOrigin?: CorsOptions['origin'];
@@ -49,6 +49,7 @@ declare class Web3IndexerApi {
 declare class Web3Indexer {
     db: Web3IndexerDB;
     api: Web3IndexerApi;
+    ethers: typeof ethers;
     private debug;
     private contracts;
     private provider;
@@ -57,7 +58,7 @@ declare class Web3Indexer {
     registerEndpoints(endpoints: Endpoints): void;
     registerGraphQL(graphql: GraphQL): void;
     log(...args: any[]): void;
-    contract(address: string, abi: InterfaceAbi): Contract;
+    contract(address: string, abi: ethers.InterfaceAbi): ethers.ethers.Contract;
     replay(): void;
 }
 

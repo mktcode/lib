@@ -1,7 +1,7 @@
+import ethers from 'ethers';
 import express, { Application, NextFunction, Request, Response } from 'express';
 import cors, { CorsOptions } from 'cors';
 import { createClient } from 'redis';
-import { Contract, InterfaceAbi, JsonRpcProvider, verifyMessage } from 'ethers';
 import { graphqlHTTP } from 'express-graphql';
 import { buildSchema } from 'graphql';
 
@@ -16,7 +16,7 @@ type ApiOptions = {
 type Listeners = {
   [network: string]: {
     [contract: string]: {
-      abi: InterfaceAbi;
+      abi: ethers.InterfaceAbi;
       listeners: {
         [event: string]: (indexer: Web3Indexer) => (...args: any[]) => Promise<void>
       }
@@ -34,7 +34,7 @@ type GraphQL = {
 }
 
 type Options = {
-  provider: string | JsonRpcProvider;
+  provider: string | ethers.JsonRpcProvider;
   redisConfig?: Record<string, any>;
   debug?: boolean;
   corsOrigin?: CorsOptions['origin'];
@@ -95,7 +95,7 @@ class Web3IndexerApi {
     const message = req.header('EOA-Signed-Message');
 
     if (signature && message) {
-      const signer = verifyMessage(message, signature);
+      const signer = ethers.verifyMessage(message, signature);
       req.headers['EOA-Signer'] = signer;
     }
 
@@ -106,11 +106,12 @@ class Web3IndexerApi {
 export class Web3Indexer {
   public db: Web3IndexerDB;
   public api: Web3IndexerApi;
+  public ethers = ethers;
 
   private debug: boolean;
 
-  private contracts: Contract[] = [];
-  private provider: JsonRpcProvider
+  private contracts: ethers.Contract[] = [];
+  private provider: ethers.JsonRpcProvider
 
   constructor({
     provider,
@@ -125,7 +126,7 @@ export class Web3Indexer {
     this.debug = debug;
 
     if (typeof provider === 'string') {
-      this.provider = new JsonRpcProvider(provider)
+      this.provider = new ethers.JsonRpcProvider(provider)
     } else {
       this.provider = provider
     }
@@ -194,8 +195,8 @@ export class Web3Indexer {
     }
   }
 
-  contract(address: string, abi: InterfaceAbi) {
-    const contract = new Contract(address, abi, this.provider)
+  contract(address: string, abi: ethers.InterfaceAbi) {
+    const contract = new ethers.Contract(address, abi, this.provider)
     this.contracts.push(contract)
 
     return contract

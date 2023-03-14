@@ -53,10 +53,10 @@ __export(src_exports, {
   Web3Indexer: () => Web3Indexer
 });
 module.exports = __toCommonJS(src_exports);
+var import_ethers = __toESM(require("ethers"));
 var import_express = __toESM(require("express"));
 var import_cors = __toESM(require("cors"));
 var import_redis = require("redis");
-var import_ethers = require("ethers");
 var import_express_graphql = require("express-graphql");
 var Web3IndexerApi = class {
   constructor({ corsOrigin, port, db }) {
@@ -92,7 +92,7 @@ var Web3IndexerApi = class {
       const signature = req.header("EOA-Signature");
       const message = req.header("EOA-Signed-Message");
       if (signature && message) {
-        const signer = (0, import_ethers.verifyMessage)(message, signature);
+        const signer = import_ethers.default.verifyMessage(message, signature);
         req.headers["EOA-Signer"] = signer;
       }
       next();
@@ -110,10 +110,11 @@ var Web3Indexer = class {
     endpoints = {},
     graphql
   }) {
+    this.ethers = import_ethers.default;
     this.contracts = [];
     this.debug = debug;
     if (typeof provider === "string") {
-      this.provider = new import_ethers.JsonRpcProvider(provider);
+      this.provider = new import_ethers.default.JsonRpcProvider(provider);
     } else {
       this.provider = provider;
     }
@@ -170,7 +171,7 @@ var Web3Indexer = class {
     }
   }
   contract(address, abi) {
-    const contract = new import_ethers.Contract(address, abi, this.provider);
+    const contract = new import_ethers.default.Contract(address, abi, this.provider);
     this.contracts.push(contract);
     return contract;
   }
