@@ -53,14 +53,16 @@ __export(src_exports, {
   Web3Indexer: () => Web3Indexer
 });
 module.exports = __toCommonJS(src_exports);
-var import_ethers = __toESM(require("ethers"));
-var import_express = __toESM(require("express"));
-var import_cors = __toESM(require("cors"));
+var import_ethers2 = require("ethers");
 var import_redis = require("redis");
+
+// src/api.ts
+var import_cors = __toESM(require("cors"));
+var import_ethers = require("ethers");
+var import_express = __toESM(require("express"));
 var import_express_graphql = require("express-graphql");
 var Web3IndexerApi = class {
-  constructor({ corsOrigin, port, db }) {
-    this.db = db;
+  constructor({ corsOrigin, port }) {
     this.server = (0, import_express.default)();
     this.server.use((0, import_cors.default)({ origin: corsOrigin }));
     this.server.use(this.getEOASigner);
@@ -92,16 +94,18 @@ var Web3IndexerApi = class {
       const signature = req.header("EOA-Signature");
       const message = req.header("EOA-Signed-Message");
       if (signature && message) {
-        const signer = import_ethers.default.verifyMessage(message, signature);
+        const signer = import_ethers.ethers.verifyMessage(message, signature);
         req.headers["EOA-Signer"] = signer;
       }
       next();
     });
   }
 };
+
+// src/index.ts
 var Web3Indexer = class {
   constructor({
-    provider,
+    providers,
     redisConfig = {},
     corsOrigin = /localhost$/,
     port = 3e3,
@@ -110,19 +114,19 @@ var Web3Indexer = class {
     endpoints = {},
     graphql
   }) {
-    this.ethers = import_ethers.default;
     this.contracts = [];
     this.debug = debug;
-    if (typeof provider === "string") {
-      this.provider = new import_ethers.default.JsonRpcProvider(provider);
-    } else {
-      this.provider = provider;
-    }
+    this.providers = Object.fromEntries(Object.entries(providers).map(([network, provider]) => {
+      if (typeof provider === "string") {
+        return [network, new import_ethers2.JsonRpcProvider(provider)];
+      }
+      return [network, provider];
+    }));
     this.db = (0, import_redis.createClient)(redisConfig);
     this.db.on("error", (err) => this.log("Redis Client Error", err));
     this.db.connect();
     port = typeof port === "string" ? parseInt(port) : port;
-    this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
+    this.api = new Web3IndexerApi({ corsOrigin, port });
     this.registerListeners(listeners);
     this.registerEndpoints(endpoints);
     if (graphql) {
@@ -138,7 +142,14 @@ var Web3Indexer = class {
         const events = Object.keys(contract.listeners);
         events.forEach((event) => {
           const listener = contract.listeners[event];
-          this.contract(contractAddress, contract.abi).on(event, listener(this));
+          if (this.providers[network] === void 0) {
+            throw new Error(`No provider for network ${network}`);
+          }
+          this.contract(
+            contractAddress,
+            contract.abi,
+            this.providers[network]
+          ).on(event, listener(this));
         });
       });
     });
@@ -170,8 +181,8 @@ var Web3Indexer = class {
       console.log(...args);
     }
   }
-  contract(address, abi) {
-    const contract = new import_ethers.default.Contract(address, abi, this.provider);
+  contract(address, abi, provider) {
+    const contract = new import_ethers2.Contract(address, abi, provider);
     this.contracts.push(contract);
     return contract;
   }

@@ -1,22 +1,22 @@
-import ethers from 'ethers';
-import express, { Application, NextFunction, Request, Response } from 'express';
-import cors, { CorsOptions } from 'cors';
-import { createClient } from 'redis';
-import { graphqlHTTP } from 'express-graphql';
+import { Contract, InterfaceAbi, JsonRpcProvider } from 'ethers';
+import { Request, Response } from 'express';
+import { CorsOptions } from 'cors';
+import { createClient, RedisClientType } from 'redis';
 import { buildSchema } from 'graphql';
+import { Web3IndexerApi } from './api';
 
-export type Web3IndexerDB = ReturnType<typeof createClient>;
+type Providers = {
+  [network: string]: string | JsonRpcProvider
+}
 
-type ApiOptions = {
-  corsOrigin: CorsOptions['origin'];
-  port: number;
-  db: Web3IndexerDB;
+type ProviderObjects = {
+  [network: string]: JsonRpcProvider
 }
 
 type Listeners = {
   [network: string]: {
     [contract: string]: {
-      abi: ethers.InterfaceAbi;
+      abi: InterfaceAbi;
       listeners: {
         [event: string]: (indexer: Web3Indexer) => (...args: any[]) => Promise<void>
       }
@@ -34,7 +34,7 @@ type GraphQL = {
 }
 
 type Options = {
-  provider: string | ethers.JsonRpcProvider;
+  providers: Providers;
   redisConfig?: Record<string, any>;
   debug?: boolean;
   corsOrigin?: CorsOptions['origin'];
@@ -44,77 +44,17 @@ type Options = {
   graphql?: GraphQL;
 }
 
-class Web3IndexerApi {
-  public server: Application;
-  public db: Web3IndexerDB;
-
-  constructor({ corsOrigin, port, db }: ApiOptions) {
-    this.db = db;
-
-    this.server = express();
-    this.server.use(cors({ origin: corsOrigin }))
-    this.server.use(this.getEOASigner)
-    this.server.listen(port, () => {
-      console.log(`Listening on http://localhost:${port}`)
-      console.log('\nRoutes:');
-      this.server._router.stack.forEach((middleware: any) => {
-        if (middleware.route) {
-          console.log(middleware.route.methods.post ? 'POST' : 'GET', middleware.route.path);
-        }
-      });
-    });
-  }
-
-  get(
-    path: string,
-    handler: (req: Request, res: Response) => void
-  ) {
-    this.server.get(path, handler)
-  }
-
-  post(
-    path: string,
-    handler: (req: Request, res: Response) => void
-  ) {
-    this.server.post(path, handler)
-  }
-
-  graphql(
-    schema: ReturnType<typeof buildSchema>,
-    resolvers: Record<string, any>
-  ) {
-    this.server.use('/graphql', graphqlHTTP({
-      schema,
-      rootValue: resolvers,
-      graphiql: true,
-    }));
-  }
-
-  private async getEOASigner(req: Request, _res: Response, next: NextFunction) {
-    const signature = req.header('EOA-Signature');
-    const message = req.header('EOA-Signed-Message');
-
-    if (signature && message) {
-      const signer = ethers.verifyMessage(message, signature);
-      req.headers['EOA-Signer'] = signer;
-    }
-
-    next();
-  }
-}
-
 export class Web3Indexer {
-  public db: Web3IndexerDB;
+  public db: RedisClientType;
   public api: Web3IndexerApi;
-  public ethers = ethers;
 
   private debug: boolean;
 
-  private contracts: ethers.Contract[] = [];
-  private provider: ethers.JsonRpcProvider
+  private contracts: Contract[] = [];
+  private providers: ProviderObjects;
 
   constructor({
-    provider,
+    providers,
     redisConfig = {},
     corsOrigin = /localhost$/,
     port = 3000,
@@ -125,18 +65,20 @@ export class Web3Indexer {
   }: Options) {
     this.debug = debug;
 
-    if (typeof provider === 'string') {
-      this.provider = new ethers.JsonRpcProvider(provider)
-    } else {
-      this.provider = provider
-    }
+    this.providers = Object.fromEntries(Object.entries(providers).map(([network, provider]) => {
+      if (typeof provider === 'string') {
+        return [network, new JsonRpcProvider(provider)]
+      }
+
+      return [network, provider]
+    }))
 
     this.db = createClient(redisConfig);
     this.db.on('error', (err: any) => this.log('Redis Client Error', err));
     this.db.connect();
 
     port = typeof port === 'string' ? parseInt(port) : port;
-    this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
+    this.api = new Web3IndexerApi({ corsOrigin, port });
 
     this.registerListeners(listeners)
     this.registerEndpoints(endpoints)
@@ -155,7 +97,16 @@ export class Web3Indexer {
         const events = Object.keys(contract.listeners)
         events.forEach((event) => {
           const listener = contract.listeners[event]!
-          this.contract(contractAddress, contract.abi).on(event, listener(this));
+
+          if (this.providers[network] === undefined) {
+            throw new Error(`No provider for network ${network}`)
+          }
+          
+          this.contract(
+            contractAddress,
+            contract.abi,
+            this.providers[network] as JsonRpcProvider,
+          ).on(event, listener(this));
         })
       })
     })
@@ -195,8 +146,8 @@ export class Web3Indexer {
     }
   }
 
-  contract(address: string, abi: ethers.InterfaceAbi) {
-    const contract = new ethers.Contract(address, abi, this.provider)
+  contract(address: string, abi: InterfaceAbi, provider: JsonRpcProvider) {
+    const contract = new Contract(address, abi, provider)
     this.contracts.push(contract)
 
     return contract

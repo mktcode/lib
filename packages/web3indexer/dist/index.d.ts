@@ -1,19 +1,29 @@
-import ethers from 'ethers';
-import { Request, Response, Application } from 'express';
+import { InterfaceAbi, JsonRpcProvider, Contract } from 'ethers';
+import { Application, Request, Response } from 'express';
 import { CorsOptions } from 'cors';
-import { createClient } from 'redis';
+import { RedisClientType } from 'redis';
 import { buildSchema } from 'graphql';
 
-type Web3IndexerDB = ReturnType<typeof createClient>;
 type ApiOptions = {
     corsOrigin: CorsOptions['origin'];
     port: number;
-    db: Web3IndexerDB;
+};
+declare class Web3IndexerApi {
+    server: Application;
+    constructor({ corsOrigin, port }: ApiOptions);
+    get(path: string, handler: (req: Request, res: Response) => void): void;
+    post(path: string, handler: (req: Request, res: Response) => void): void;
+    graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
+    private getEOASigner;
+}
+
+type Providers = {
+    [network: string]: string | JsonRpcProvider;
 };
 type Listeners = {
     [network: string]: {
         [contract: string]: {
-            abi: ethers.InterfaceAbi;
+            abi: InterfaceAbi;
             listeners: {
                 [event: string]: (indexer: Web3Indexer) => (...args: any[]) => Promise<void>;
             };
@@ -28,7 +38,7 @@ type GraphQL = {
     resolvers: (indexer: Web3Indexer) => Record<string, any>;
 };
 type Options = {
-    provider: string | ethers.JsonRpcProvider;
+    providers: Providers;
     redisConfig?: Record<string, any>;
     debug?: boolean;
     corsOrigin?: CorsOptions['origin'];
@@ -37,29 +47,19 @@ type Options = {
     endpoints?: Endpoints;
     graphql?: GraphQL;
 };
-declare class Web3IndexerApi {
-    server: Application;
-    db: Web3IndexerDB;
-    constructor({ corsOrigin, port, db }: ApiOptions);
-    get(path: string, handler: (req: Request, res: Response) => void): void;
-    post(path: string, handler: (req: Request, res: Response) => void): void;
-    graphql(schema: ReturnType<typeof buildSchema>, resolvers: Record<string, any>): void;
-    private getEOASigner;
-}
 declare class Web3Indexer {
-    db: Web3IndexerDB;
+    db: RedisClientType;
     api: Web3IndexerApi;
-    ethers: typeof ethers;
     private debug;
     private contracts;
-    private provider;
-    constructor({ provider, redisConfig, corsOrigin, port, debug, listeners, endpoints, graphql }: Options);
+    private providers;
+    constructor({ providers, redisConfig, corsOrigin, port, debug, listeners, endpoints, graphql }: Options);
     registerListeners(listeners: Listeners): void;
     registerEndpoints(endpoints: Endpoints): void;
     registerGraphQL(graphql: GraphQL): void;
     log(...args: any[]): void;
-    contract(address: string, abi: ethers.InterfaceAbi): ethers.ethers.Contract;
+    contract(address: string, abi: InterfaceAbi, provider: JsonRpcProvider): Contract;
     replay(): void;
 }
 
-export { Web3Indexer, Web3IndexerDB };
+export { Web3Indexer };

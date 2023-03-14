@@ -20,14 +20,16 @@ var __async = (__this, __arguments, generator) => {
 };
 
 // src/index.ts
-import ethers from "ethers";
-import express from "express";
-import cors from "cors";
+import { Contract, JsonRpcProvider } from "ethers";
 import { createClient } from "redis";
+
+// src/api.ts
+import cors from "cors";
+import { ethers } from "ethers";
+import express from "express";
 import { graphqlHTTP } from "express-graphql";
 var Web3IndexerApi = class {
-  constructor({ corsOrigin, port, db }) {
-    this.db = db;
+  constructor({ corsOrigin, port }) {
     this.server = express();
     this.server.use(cors({ origin: corsOrigin }));
     this.server.use(this.getEOASigner);
@@ -66,9 +68,11 @@ var Web3IndexerApi = class {
     });
   }
 };
+
+// src/index.ts
 var Web3Indexer = class {
   constructor({
-    provider,
+    providers,
     redisConfig = {},
     corsOrigin = /localhost$/,
     port = 3e3,
@@ -77,19 +81,19 @@ var Web3Indexer = class {
     endpoints = {},
     graphql
   }) {
-    this.ethers = ethers;
     this.contracts = [];
     this.debug = debug;
-    if (typeof provider === "string") {
-      this.provider = new ethers.JsonRpcProvider(provider);
-    } else {
-      this.provider = provider;
-    }
+    this.providers = Object.fromEntries(Object.entries(providers).map(([network, provider]) => {
+      if (typeof provider === "string") {
+        return [network, new JsonRpcProvider(provider)];
+      }
+      return [network, provider];
+    }));
     this.db = createClient(redisConfig);
     this.db.on("error", (err) => this.log("Redis Client Error", err));
     this.db.connect();
     port = typeof port === "string" ? parseInt(port) : port;
-    this.api = new Web3IndexerApi({ corsOrigin, port, db: this.db });
+    this.api = new Web3IndexerApi({ corsOrigin, port });
     this.registerListeners(listeners);
     this.registerEndpoints(endpoints);
     if (graphql) {
@@ -105,7 +109,14 @@ var Web3Indexer = class {
         const events = Object.keys(contract.listeners);
         events.forEach((event) => {
           const listener = contract.listeners[event];
-          this.contract(contractAddress, contract.abi).on(event, listener(this));
+          if (this.providers[network] === void 0) {
+            throw new Error(`No provider for network ${network}`);
+          }
+          this.contract(
+            contractAddress,
+            contract.abi,
+            this.providers[network]
+          ).on(event, listener(this));
         });
       });
     });
@@ -137,8 +148,8 @@ var Web3Indexer = class {
       console.log(...args);
     }
   }
-  contract(address, abi) {
-    const contract = new ethers.Contract(address, abi, this.provider);
+  contract(address, abi, provider) {
+    const contract = new Contract(address, abi, provider);
     this.contracts.push(contract);
     return contract;
   }
