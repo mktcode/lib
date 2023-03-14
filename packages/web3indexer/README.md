@@ -107,4 +107,4 @@ GET /events/transfers
 
 ## Docker
 
-You can use this [templpate repository](https://github.com/mktcode/web3indexer-container).
+You can start with this [templpate repository](https://github.com/mktcode/web3indexer-container) and adjust it to your needs.
